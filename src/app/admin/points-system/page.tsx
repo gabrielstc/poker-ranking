@@ -29,7 +29,7 @@ export default function PointsSystemPage() {
                     <div>
                         <h1 className="text-3xl font-bold">Sistema de Pontuação</h1>
                         <p className="text-gray-600 mt-2">
-                            Entenda como funciona o cálculo automático e exponencial de pontos
+                            Entenda como funciona o novo cálculo automático de pontos
                         </p>
                     </div>
                 </div>
@@ -47,26 +47,25 @@ export default function PointsSystemPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="text-center">
                             <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                            <h3 className="font-semibold mb-2">Crescimento Exponencial</h3>
+                            <h3 className="font-semibold mb-2">Fórmula Otimizada</h3>
                             <p className="text-sm text-gray-600">
-                                Quanto mais participantes, mais pontos são distribuídos.
-                                Fórmula: participantes^1.5 × 10
+                                Nova fórmula: ROUND(SQRT(participantes) × (participantes - posição + 1)^1.3, 1)
                             </p>
                         </div>
                         <div className="text-center">
                             <Trophy className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-                            <h3 className="font-semibold mb-2">Distribuição Justa</h3>
+                            <h3 className="font-semibold mb-2">Distribuição Equilibrada</h3>
                             <p className="text-sm text-gray-600">
-                                Pelo menos 50% das posições recebem pontos, com decaimento
-                                progressivo de 80% por posição
+                                Pontuação proporcional ao número de participantes,
+                                favorecendo torneios maiores
                             </p>
                         </div>
                         <div className="text-center">
                             <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                            <h3 className="font-semibold mb-2">Adaptável</h3>
+                            <h3 className="font-semibold mb-2">Precisão Decimal</h3>
                             <p className="text-sm text-gray-600">
-                                O sistema se adapta automaticamente ao tamanho do torneio,
-                                garantindo competitividade justa
+                                Pontos calculados com 1 casa decimal para
+                                maior precisão na classificação
                             </p>
                         </div>
                     </div>
@@ -77,7 +76,6 @@ export default function PointsSystemPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {exampleTournaments.map((tournament) => {
                     const distribution = calculateTournamentPoints(tournament.participants)
-                    const basePoints = Math.round(Math.pow(tournament.participants, 1.5) * 10)
 
                     return (
                         <Card key={tournament.participants}>
@@ -86,7 +84,7 @@ export default function PointsSystemPage() {
                                     {tournament.name} ({tournament.participants} jogadores)
                                 </CardTitle>
                                 <p className="text-sm text-gray-600">
-                                    Pontos base: {basePoints} | Posições pagas: {distribution.length}
+                                    Fórmula: ROUND(SQRT({tournament.participants}) × (participantes - posição + 1)^1.3, 1)
                                 </p>
                             </CardHeader>
                             <CardContent>
@@ -126,6 +124,55 @@ export default function PointsSystemPage() {
                     )
                 })}
             </div>
+
+            {/* Tabela de Comparação */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Comparação de Pontos - Nova Fórmula</CardTitle>
+                    <p className="text-sm text-gray-600">
+                        Valores exatos calculados com a nova fórmula matemática
+                    </p>
+                </CardHeader>
+                <CardContent>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Participantes</TableHead>
+                                    <TableHead className="text-right">1º Lugar</TableHead>
+                                    <TableHead className="text-right">2º Lugar</TableHead>
+                                    <TableHead className="text-right">3º Lugar</TableHead>
+                                    <TableHead className="text-right">Último Lugar</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {[4, 6, 8, 10, 12, 15, 20].map((participants) => {
+                                    const distribution = calculateTournamentPoints(participants)
+                                    const first = distribution.find(d => d.position === 1)?.points || 0
+                                    const second = distribution.find(d => d.position === 2)?.points || 0
+                                    const third = distribution.find(d => d.position === 3)?.points || 0
+                                    const last = distribution.find(d => d.position === participants)?.points || 0
+
+                                    return (
+                                        <TableRow key={participants}>
+                                            <TableCell className="font-medium">{participants}</TableCell>
+                                            <TableCell className="text-right font-medium text-yellow-600">{first}</TableCell>
+                                            <TableCell className="text-right">{second}</TableCell>
+                                            <TableCell className="text-right">{third}</TableCell>
+                                            <TableCell className="text-right text-gray-600">{last}</TableCell>
+                                        </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                            <strong>Destaque:</strong> Para 12 participantes, o 1º lugar recebe exatamente <strong>87.6 pontos</strong>, conforme a nova fórmula matemática.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Dicas de Uso */}
             <Card className="bg-yellow-50 border-yellow-200">
@@ -177,30 +224,34 @@ export default function PointsSystemPage() {
                 <CardContent>
                     <div className="space-y-4">
                         <div>
-                            <h4 className="font-semibold mb-2">Fórmula Base</h4>
+                            <h4 className="font-semibold mb-2">Fórmula Matemática</h4>
                             <div className="bg-gray-100 p-3 rounded font-mono text-sm">
-                                pontos_base = participantes^1.5 × 10
+                                PONTOS = ROUND(SQRT(total_participantes) × POWER(total_participantes - posição + 1, 1.3), 1)
                             </div>
+                            <p className="text-sm text-gray-600 mt-2">
+                                Esta fórmula garante uma distribuição equilibrada de pontos,
+                                favorecendo torneios com mais participantes e premiando melhor as primeiras posições.
+                            </p>
                         </div>
 
                         <div>
-                            <h4 className="font-semibold mb-2">Distribuição por Posição</h4>
-                            <div className="bg-gray-100 p-3 rounded font-mono text-sm">
-                                pontos_posição = pontos_base × (0.8)^(posição - 1)
-                            </div>
+                            <h4 className="font-semibold mb-2">Componentes da Fórmula</h4>
+                            <ul className="space-y-2 text-sm">
+                                <li><strong>SQRT(total_participantes):</strong> Raiz quadrada que cria a base proporcional ao tamanho do torneio</li>
+                                <li><strong>total_participantes - posição + 1:</strong> Calcula a &ldquo;distância inversa&rdquo; da posição (quanto maior a posição, menor o valor)</li>
+                                <li><strong>POWER(..., 1.3):</strong> Potência de 1.3 que cria uma curva de distribuição suave</li>
+                                <li><strong>ROUND(..., 1):</strong> Arredonda para 1 casa decimal para precisão</li>
+                            </ul>
                         </div>
 
                         <div>
-                            <h4 className="font-semibold mb-2">Posições Pagas</h4>
-                            <div className="bg-gray-100 p-3 rounded font-mono text-sm">
-                                posições_pagas = max(3, ceil(participantes × 0.5))
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 className="font-semibold mb-2">Pontos Mínimos</h4>
-                            <div className="bg-gray-100 p-3 rounded font-mono text-sm">
-                                pontos_mínimos = max(10, pontos_base × 0.1)
+                            <h4 className="font-semibold mb-2">Exemplo de Cálculo (12 participantes, 1º lugar)</h4>
+                            <div className="bg-gray-100 p-3 rounded text-sm space-y-1">
+                                <div>1. SQRT(12) = 3.464</div>
+                                <div>2. 12 - 1 + 1 = 12</div>
+                                <div>3. POWER(12, 1.3) = 25.289</div>
+                                <div>4. 3.464 × 25.289 = 87.64</div>
+                                <div>5. ROUND(87.64, 1) = <strong>87.6 pontos</strong></div>
                             </div>
                         </div>
                     </div>

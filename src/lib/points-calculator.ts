@@ -1,5 +1,5 @@
-// Sistema de pontuação exponencial para torneios de poker
-// Quanto mais participantes, mais pontos são distribuídos
+// Sistema de pontuação para torneios de poker
+// Nova fórmula: ROUND(SQRT(total_jogadores) * POWER(total_jogadores - posição + 1, 1.3), 1)
 
 interface PointsCalculation {
     position: number
@@ -11,27 +11,20 @@ export function calculateTournamentPoints(totalParticipants: number): PointsCalc
         return [{ position: 1, points: 100 }]
     }
 
-    // Fórmula exponencial: pontos_base = total_participantes^1.5 * 10
-    const basePoints = Math.round(Math.pow(totalParticipants, 1.5) * 10)
-
     // Calcular quantas posições receberão pontos (pelo menos top 50% ou mínimo 3)
     const payoutPositions = Math.max(3, Math.ceil(totalParticipants * 0.5))
 
     const pointsDistribution: PointsCalculation[] = []
 
     for (let position = 1; position <= payoutPositions; position++) {
-        // Fórmula de decaimento exponencial para distribuir pontos
-        // 1º lugar recebe 100% dos pontos base
-        // Cada posição subsequente recebe progressivamente menos
-        const decayFactor = Math.pow(0.8, position - 1)
-        const points = Math.round(basePoints * decayFactor)
-
-        // Garantir pontos mínimos para posições pagantes
-        const minimumPoints = Math.max(10, Math.round(basePoints * 0.1))
+        // Nova fórmula: ROUND(SQRT(total_jogadores) * POWER(total_jogadores - posição + 1, 1.3), 1)
+        const sqrtTotal = Math.sqrt(totalParticipants)
+        const powerFactor = Math.pow(totalParticipants - position + 1, 1.3)
+        const points = Math.round(sqrtTotal * powerFactor * 10) / 10 // Arredonda para 1 casa decimal
 
         pointsDistribution.push({
             position,
-            points: Math.max(points, minimumPoints)
+            points: Math.max(points, 1) // Garantir pelo menos 1 ponto
         })
     }
 
@@ -39,9 +32,14 @@ export function calculateTournamentPoints(totalParticipants: number): PointsCalc
 }
 
 export function getPointsForPosition(position: number, totalParticipants: number): number {
-    const distribution = calculateTournamentPoints(totalParticipants)
-    const entry = distribution.find(d => d.position === position)
-    return entry ? entry.points : 0
+    // Nova fórmula direta: ROUND(SQRT(total_jogadores) * POWER(total_jogadores - posição + 1, 1.3), 1)
+    if (position > totalParticipants) return 0
+
+    const sqrtTotal = Math.sqrt(totalParticipants)
+    const powerFactor = Math.pow(totalParticipants - position + 1, 1.3)
+    const points = Math.round(sqrtTotal * powerFactor * 10) / 10 // Arredonda para 1 casa decimal
+
+    return Math.max(points, 0)
 }
 
 // Função para recalcular automaticamente todos os pontos de um torneio
