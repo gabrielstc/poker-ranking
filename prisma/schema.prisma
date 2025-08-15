@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  name      String
+  nickname  String   @unique
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamento com participações em torneios
+  participations TournamentParticipation[]
+
+  @@map("players")
+}
+
+model Tournament {
+  id          String   @id @default(cuid())
+  name        String
+  date        DateTime
+  buyIn       Float?
+  description String?
+  status      TournamentStatus @default(UPCOMING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamento com participações
+  participations TournamentParticipation[]
+
+  @@map("tournaments")
+}
+
+model TournamentParticipation {
+  id           String @id @default(cuid())
+  playerId     String
+  tournamentId String
+  position     Int?   // Posição final no torneio (1º, 2º, 3º, etc.)
+  points       Int?   // Pontos obtidos
+  prize        Float? // Prêmio em dinheiro
+  eliminated   Boolean @default(false)
+  eliminatedAt DateTime?
+
+  // Relacionamentos
+  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, tournamentId])
+  @@map("tournament_participations")
+}
+
+enum TournamentStatus {
+  UPCOMING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}

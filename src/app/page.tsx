@@ -1,103 +1,215 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
+
+interface RankingPlayer {
+  position: number
+  player: {
+    id: string
+    name: string
+    nickname: string
+  }
+  totalPoints: number
+  tournaments: number
+  wins: number
+  averagePosition: number | null
+}
+
+export default function HomePage() {
+  const [ranking, setRanking] = useState<RankingPlayer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedMonth, setSelectedMonth] = useState<string>("")
+  const [selectedYear, setSelectedYear] = useState<string>("")
+
+  const currentDate = new Date()
+  const currentMonth = (currentDate.getMonth() + 1).toString()
+  const currentYear = currentDate.getFullYear().toString()
+
+  useEffect(() => {
+    setSelectedMonth(currentMonth)
+    setSelectedYear(currentYear)
+  }, [currentMonth, currentYear])
+
+  useEffect(() => {
+    if (selectedMonth && selectedYear) {
+      fetchRanking()
+    }
+  }, [selectedMonth, selectedYear])
+
+  const fetchRanking = async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (selectedMonth && selectedYear) {
+        params.append('month', selectedMonth)
+        params.append('year', selectedYear)
+      }
+
+      const response = await fetch(`/api/ranking?${params}`)
+      if (response.ok) {
+        const data = await response.json()
+        setRanking(data)
+      }
+    } catch (error) {
+      console.error('Erro ao buscar ranking:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getPositionIcon = (position: number) => {
+    switch (position) {
+      case 1:
+        return <Trophy className="h-6 w-6 text-yellow-500" />
+      case 2:
+        return <Medal className="h-6 w-6 text-gray-400" />
+      case 3:
+        return <Award className="h-6 w-6 text-amber-600" />
+      default:
+        return <span className="h-6 w-6 flex items-center justify-center text-sm font-bold text-gray-600">{position}</span>
+    }
+  }
+
+  const monthOptions = [
+    { value: "1", label: "Janeiro" },
+    { value: "2", label: "Fevereiro" },
+    { value: "3", label: "Março" },
+    { value: "4", label: "Abril" },
+    { value: "5", label: "Maio" },
+    { value: "6", label: "Junho" },
+    { value: "7", label: "Julho" },
+    { value: "8", label: "Agosto" },
+    { value: "9", label: "Setembro" },
+    { value: "10", label: "Outubro" },
+    { value: "11", label: "Novembro" },
+    { value: "12", label: "Dezembro" },
+  ]
+
+  const years = []
+  for (let year = currentDate.getFullYear(); year >= 2020; year--) {
+    years.push(year.toString())
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold text-gray-900">Ranking de Poker</h1>
+        <p className="text-lg text-gray-600">
+          Acompanhe o desempenho dos jogadores nos torneios
+        </p>
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* Filtros */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="h-5 w-5" />
+            <span>Filtrar por Período</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex space-x-4">
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Selecione o mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Ano" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button onClick={fetchRanking} disabled={loading}>
+              Atualizar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Ranking */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="h-5 w-5" />
+            <span>
+              Ranking {selectedMonth && selectedYear &&
+                `- ${monthOptions.find(m => m.value === selectedMonth)?.label} ${selectedYear}`
+              }
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-gray-600">Carregando ranking...</p>
+            </div>
+          ) : ranking.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Nenhum dado encontrado para este período</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">Pos.</TableHead>
+                  <TableHead>Jogador</TableHead>
+                  <TableHead className="text-center">Pontos</TableHead>
+                  <TableHead className="text-center">Torneios</TableHead>
+                  <TableHead className="text-center">Vitórias</TableHead>
+                  <TableHead className="text-center">Pos. Média</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ranking.map((player) => (
+                  <TableRow key={player.player.id} className={player.position <= 3 ? "bg-yellow-50" : ""}>
+                    <TableCell className="flex items-center justify-center">
+                      {getPositionIcon(player.position)}
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{player.player.name}</div>
+                        <div className="text-sm text-gray-500">@{player.player.nickname}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-bold text-lg">
+                      {player.totalPoints}
+                    </TableCell>
+                    <TableCell className="text-center">{player.tournaments}</TableCell>
+                    <TableCell className="text-center">{player.wins}</TableCell>
+                    <TableCell className="text-center">
+                      {player.averagePosition ? player.averagePosition.toFixed(1) : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

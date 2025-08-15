@@ -1,36 +1,212 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏆 Sistema de Ranking de Poker
 
-## Getting Started
+Um sistema web completo para gerenciamento e exibição de ranking de torneios de poker, desenvolvido com as mais modernas tecnologias.
 
-First, run the development server:
+## 🚀 Tecnologias Utilizadas
 
+- **Next.js 15** - Framework React com App Router
+- **TypeScript** - Tipagem estática
+- **Prisma** - ORM e gerenciamento de banco de dados
+- **SQLite** - Banco de dados (facilmente alterável para PostgreSQL/MySQL)
+- **NextAuth.js** - Autenticação
+- **TailwindCSS** - Estilização
+- **shadcn/ui** - Componentes de interface
+- **Lucide React** - Ícones
+- **date-fns** - Manipulação de datas
+- **Sonner** - Sistema de notificações
+
+## ✨ Funcionalidades
+
+### 📊 Página Pública de Ranking
+- Exibição do ranking mensal ordenado por pontuação
+- Filtros por mês e ano
+- Destaque visual para os 3 primeiros colocados
+- Layout responsivo e intuitivo
+- Estatísticas detalhadas (pontos, torneios, vitórias, posição média)
+
+### 🔐 Sistema de Autenticação
+- Login/logout seguro
+- Criptografia de senhas com bcrypt
+- Sessões gerenciadas com NextAuth.js
+- Áreas protegidas para administração
+
+### 🏆 Gerenciamento de Torneios
+- Criar, editar e excluir torneios
+- Campos: nome, data, buy-in, descrição, status
+- Status: Próximo, Em Andamento, Finalizado, Cancelado
+- Visualização de participantes por torneio
+
+### 👥 Gerenciamento de Jogadores
+- Cadastro completo de jogadores
+- Campos: nome, nickname, email, telefone
+- Histórico de participações
+- Estatísticas individuais (torneios, pontos, vitórias)
+
+### 📱 Design Responsivo
+- Interface adaptável para desktop e mobile
+- Animações sutis e feedback visual
+- Tema moderno com TailwindCSS
+- Componentes acessíveis com shadcn/ui
+
+## 🛠️ Instalação e Configuração
+
+### Pré-requisitos
+- Node.js 18+ 
+- npm ou yarn
+
+### 1. Clone o repositório
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <url-do-repositorio>
+cd poker-ranking
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instale as dependências
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configure o banco de dados
+```bash
+# Gerar o cliente Prisma
+npx prisma generate
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Executar migrações
+npx prisma migrate dev --name init
+```
 
-## Learn More
+### 4. Popular com dados de exemplo (opcional)
+```bash
+npm run seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Iniciar o servidor de desenvolvimento
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+O sistema estará disponível em http://localhost:3000
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 👤 Credenciais de Acesso
 
-## Deploy on Vercel
+Após executar o seed, você pode fazer login com:
+- **Email:** admin@poker.com
+- **Senha:** admin123
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📁 Estrutura do Projeto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/                    # Páginas e rotas da aplicação
+│   ├── api/               # API Routes
+│   │   ├── auth/          # Autenticação
+│   │   ├── players/       # Gestão de jogadores
+│   │   ├── tournaments/   # Gestão de torneios
+│   │   └── ranking/       # API do ranking
+│   ├── admin/             # Páginas administrativas
+│   ├── login/             # Página de login
+│   └── page.tsx           # Página inicial (ranking público)
+├── components/            # Componentes React
+│   ├── ui/               # Componentes base do shadcn/ui
+│   ├── providers/        # Providers (Auth, Theme)
+│   └── navbar.tsx        # Navegação principal
+├── lib/                  # Utilitários e configurações
+│   ├── prisma.ts         # Cliente Prisma
+│   ├── auth.ts           # Configuração NextAuth
+│   └── utils.ts          # Utilitários gerais
+└── types/                # Definições de tipos TypeScript
+```
+
+## 🗄️ Modelo de Dados
+
+### Usuários (Users)
+- id, email, name, password
+- Sistema de autenticação para administradores
+
+### Jogadores (Players)  
+- id, name, nickname, email, phone
+- Informações básicas dos participantes
+
+### Torneios (Tournaments)
+- id, name, date, buyIn, description, status
+- Eventos de poker com diferentes status
+
+### Participações (TournamentParticipations)
+- Relaciona jogadores com torneios
+- position, points, prize
+- Armazena resultados e pontuações
+
+## 🎯 Sistema de Pontuação
+
+O ranking é calculado baseado em:
+- **Pontos totais** obtidos em todos os torneios
+- **Número de torneios** participados
+- **Vitórias** (1º lugar)
+- **Posição média** nos torneios
+
+## 🔧 Scripts Disponíveis
+
+```bash
+npm run dev          # Servidor de desenvolvimento
+npm run build        # Build para produção
+npm run start        # Servidor de produção
+npm run lint         # Verificação de código
+npm run seed         # Popular banco com dados
+```
+
+## 🌐 Deploy
+
+### Vercel (Recomendado)
+1. Conecte seu repositório ao Vercel
+2. Configure as variáveis de ambiente
+3. O deploy será automático
+
+### Outras Plataformas
+O projeto é compatível com qualquer plataforma que suporte Next.js:
+- Netlify
+- Railway
+- AWS Amplify
+- DigitalOcean App Platform
+
+## ⚙️ Variáveis de Ambiente
+
+Crie um arquivo `.env` com:
+
+```env
+# Database
+DATABASE_URL="file:./dev.db"
+
+# NextAuth.js
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+## 🚀 Próximas Funcionalidades
+
+- [ ] Gráficos e estatísticas avançadas
+- [ ] Sistema de upload de avatars
+- [ ] Notificações por email
+- [ ] API pública para integração
+- [ ] Modo escuro/claro
+- [ ] Export de dados (CSV, PDF)
+- [ ] Sistema de rankings por categorias
+- [ ] Chat em tempo real durante torneios
+
+## 🤝 Contribuindo
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## 📞 Suporte
+
+Para suporte e dúvidas, abra uma issue no repositório ou entre em contato.
+
+---
+
+Desenvolvido com ❤️ utilizando as melhores práticas de desenvolvimento web moderno.
