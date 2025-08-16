@@ -14,6 +14,8 @@ Um sistema web completo para gerenciamento e exibição de ranking de torneios d
 - **Lucide React** - Ícones
 - **date-fns** - Manipulação de datas
 - **Sonner** - Sistema de notificações
+- **Vercel Speed Insights** - Monitoramento de performance
+- **Vercel Analytics** - Métricas de uso e comportamento
 
 ## ✨ Funcionalidades
 
@@ -47,6 +49,11 @@ Um sistema web completo para gerenciamento e exibição de ranking de torneios d
 - Animações sutis e feedback visual
 - Tema moderno com TailwindCSS
 - Componentes acessíveis com shadcn/ui
+
+### 📊 Monitoramento e Analytics
+- **Speed Insights**: Monitoramento em tempo real da performance das páginas
+- **Analytics**: Métricas de uso, visualizações e comportamento dos usuários
+- **Otimização contínua**: Dados para melhorar a experiência do usuário
 
 ## 🛠️ Instalação e Configuração
 
