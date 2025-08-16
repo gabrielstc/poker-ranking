@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -56,6 +55,16 @@ export default function TournamentDetailsPage() {
     const [loading, setLoading] = useState(true)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [editingParticipation, setEditingParticipation] = useState<Participation | null>(null)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [showDropdown, setShowDropdown] = useState(false)
+    const [selectedPlayerName, setSelectedPlayerName] = useState("")
+    const [showAddPlayerForm, setShowAddPlayerForm] = useState(false)
+    const [newPlayerData, setNewPlayerData] = useState({
+        name: "",
+        nickname: "",
+        email: "",
+        phone: ""
+    })
     const [formData, setFormData] = useState({
         playerId: "",
         position: "",
@@ -225,6 +234,11 @@ export default function TournamentDetailsPage() {
             prize: ""
         })
         setEditingParticipation(null)
+        setSearchTerm("")
+        setShowDropdown(false)
+        setSelectedPlayerName("")
+        setShowAddPlayerForm(false)
+        setNewPlayerData({ name: "", nickname: "", email: "", phone: "" })
     }
 
     const getPositionIcon = (position: number | null) => {
@@ -270,6 +284,74 @@ export default function TournamentDetailsPage() {
             !participatingPlayerIds.includes(player.id) ||
             (editingParticipation && player.id === editingParticipation.playerId)
         )
+    }
+
+    const getFilteredPlayers = () => {
+        const availablePlayers = getAvailablePlayers()
+        if (!searchTerm) return availablePlayers
+
+        return availablePlayers.filter(player =>
+            player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            player.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (player.email && player.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        )
+    }
+
+    const handleAddNewPlayer = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (!newPlayerData.name || !newPlayerData.nickname) {
+            toast.error("Nome e nickname são obrigatórios")
+            return
+        }
+
+        try {
+            const response = await fetch("/api/players", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(newPlayerData),
+            })
+
+            if (response.ok) {
+                const newPlayer = await response.json()
+                setAllPlayers(prev => [...prev, newPlayer])
+                setFormData(prev => ({ ...prev, playerId: newPlayer.id }))
+                setNewPlayerData({ name: "", nickname: "", email: "", phone: "" })
+                setShowAddPlayerForm(false)
+                setSearchTerm("")
+                toast.success("Jogador adicionado e selecionado!")
+            } else {
+                const error = await response.json()
+                toast.error(error.error || "Erro ao adicionar jogador")
+            }
+        } catch (error) {
+            console.error("Erro:", error)
+            toast.error("Erro interno")
+        }
+    }
+
+    const resetAddPlayerForm = () => {
+        setNewPlayerData({ name: "", nickname: "", email: "", phone: "" })
+        setShowAddPlayerForm(false)
+        setSearchTerm("")
+    }
+
+    const handleSelectPlayer = (player: Player) => {
+        setFormData(prev => ({ ...prev, playerId: player.id }))
+        setSelectedPlayerName(`${player.name} (@${player.nickname})`)
+        setSearchTerm("")
+        setShowDropdown(false)
+    }
+
+    const handleSearchInputChange = (value: string) => {
+        setSearchTerm(value)
+        setShowDropdown(value.length > 0)
+        if (value.length === 0) {
+            setFormData(prev => ({ ...prev, playerId: "" }))
+            setSelectedPlayerName("")
+        }
     }
 
     if (status === "loading" || loading) {
@@ -336,18 +418,137 @@ export default function TournamentDetailsPage() {
                         <form onSubmit={handleSubmitParticipation} className="space-y-4">
                             <div>
                                 <Label htmlFor="playerId">Jogador</Label>
-                                <Select value={formData.playerId} onValueChange={(value) => setFormData(prev => ({ ...prev, playerId: value }))}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione um jogador" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {getAvailablePlayers().map((player) => (
-                                            <SelectItem key={player.id} value={player.id}>
-                                                {player.name} (@{player.nickname})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+
+                                {/* Input com autocomplete */}
+                                <div className="relative">
+                                    <Input
+                                        placeholder="Digite para pesquisar jogador por nome, nickname ou email..."
+                                        value={formData.playerId ? selectedPlayerName : searchTerm}
+                                        onChange={(e) => handleSearchInputChange(e.target.value)}
+                                        onFocus={() => {
+                                            if (searchTerm) setShowDropdown(true)
+                                        }}
+                                        className="mb-2"
+                                    />
+
+                                    {/* Dropdown de resultados */}
+                                    {showDropdown && searchTerm && (
+                                        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                            {getFilteredPlayers().length > 0 ? (
+                                                getFilteredPlayers().map((player) => (
+                                                    <div
+                                                        key={player.id}
+                                                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                        onClick={() => handleSelectPlayer(player)}
+                                                    >
+                                                        <div className="font-medium">{player.name}</div>
+                                                        <div className="text-sm text-gray-500">
+                                                            @{player.nickname}
+                                                            {player.email && <span className="ml-2">• {player.email}</span>}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="px-3 py-2 text-sm text-gray-500">
+                                                    Nenhum jogador encontrado
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Indicador de jogador selecionado */}
+                                    {formData.playerId && (
+                                        <div className="mt-1 p-2 bg-green-50 border border-green-200 rounded-md">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-green-800">
+                                                    ✓ Jogador selecionado: {selectedPlayerName}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, playerId: "" }))
+                                                        setSelectedPlayerName("")
+                                                        setSearchTerm("")
+                                                    }}
+                                                    className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
+                                                >
+                                                    ×
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Botão para adicionar novo jogador */}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setShowAddPlayerForm(!showAddPlayerForm)}
+                                    className="w-full mt-2"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    {showAddPlayerForm ? "Cancelar" : "Adicionar Novo Jogador"}
+                                </Button>
+
+                                {/* Formulário para adicionar novo jogador */}
+                                {showAddPlayerForm && (
+                                    <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
+                                        <h4 className="font-medium text-sm">Adicionar Novo Jogador</h4>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <Label htmlFor="newPlayerName" className="text-xs">Nome *</Label>
+                                                <Input
+                                                    id="newPlayerName"
+                                                    placeholder="Nome completo"
+                                                    value={newPlayerData.name}
+                                                    onChange={(e) => setNewPlayerData(prev => ({ ...prev, name: e.target.value }))}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="newPlayerNickname" className="text-xs">Nickname *</Label>
+                                                <Input
+                                                    id="newPlayerNickname"
+                                                    placeholder="@nickname"
+                                                    value={newPlayerData.nickname}
+                                                    onChange={(e) => setNewPlayerData(prev => ({ ...prev, nickname: e.target.value }))}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <Label htmlFor="newPlayerEmail" className="text-xs">Email</Label>
+                                                <Input
+                                                    id="newPlayerEmail"
+                                                    type="email"
+                                                    placeholder="email@exemplo.com"
+                                                    value={newPlayerData.email}
+                                                    onChange={(e) => setNewPlayerData(prev => ({ ...prev, email: e.target.value }))}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="newPlayerPhone" className="text-xs">Telefone</Label>
+                                                <Input
+                                                    id="newPlayerPhone"
+                                                    placeholder="(11) 99999-9999"
+                                                    value={newPlayerData.phone}
+                                                    onChange={(e) => setNewPlayerData(prev => ({ ...prev, phone: e.target.value }))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end space-x-2">
+                                            <Button type="button" variant="outline" size="sm" onClick={resetAddPlayerForm}>
+                                                Cancelar
+                                            </Button>
+                                            <Button type="button" size="sm" onClick={handleAddNewPlayer}>
+                                                Adicionar Jogador
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">

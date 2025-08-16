@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -18,7 +18,7 @@ export async function PUT(
         }
 
         const { name, nickname, email, phone } = await request.json()
-        const { id } = params
+        const { id } = await params
 
         if (!name || !nickname) {
             return NextResponse.json(
@@ -76,7 +76,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -88,7 +88,7 @@ export async function DELETE(
             )
         }
 
-        const { id } = params
+        const { id } = await params
 
         // Verificar se o jogador existe
         const existingPlayer = await prisma.player.findUnique({
