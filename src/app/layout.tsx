@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Poker Ranking - Sistema de Gerenciamento de Torneios",
   description: "Sistema completo para gerenciamento e exibição de ranking de poker",
+  keywords: ["poker", "ranking", "torneios", "gestão", "pontuação"],
+  authors: [{ name: "Sistema Poker Ranking" }],
+  robots: "index, follow",
 };
 
 export default function RootLayout({

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
+import { useAnalytics } from "@/hooks/useAnalytics"
 
 interface RankingPlayer {
   position: number
@@ -25,23 +26,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState<string>("")
   const [selectedYear, setSelectedYear] = useState<string>("")
+  
+  const { trackRankingView, trackRankingFilter, trackPageView } = useAnalytics()
 
   const currentDate = new Date()
   const currentMonth = (currentDate.getMonth() + 1).toString()
   const currentYear = currentDate.getFullYear().toString()
 
-  useEffect(() => {
-    setSelectedMonth(currentMonth)
-    setSelectedYear(currentYear)
-  }, [currentMonth, currentYear])
-
-  useEffect(() => {
-    if (selectedMonth && selectedYear) {
-      fetchRanking()
-    }
-  }, [selectedMonth, selectedYear])
-
-  const fetchRanking = async () => {
+  const fetchRanking = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -54,13 +46,26 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json()
         setRanking(data)
+        trackRankingView(selectedMonth, selectedYear)
       }
     } catch (error) {
       console.error('Erro ao buscar ranking:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedMonth, selectedYear, trackRankingView])
+
+  useEffect(() => {
+    setSelectedMonth(currentMonth)
+    setSelectedYear(currentYear)
+    trackPageView('ranking_home')
+  }, [currentMonth, currentYear, trackPageView])
+
+  useEffect(() => {
+    if (selectedMonth && selectedYear) {
+      fetchRanking()
+    }
+  }, [selectedMonth, selectedYear, fetchRanking])
 
   const getPositionIcon = (position: number) => {
     switch (position) {
@@ -115,9 +120,12 @@ export default function HomePage() {
         </CardHeader>
         <CardContent>
           <div className="flex space-x-4">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Selecione o mês" />
+            <Select value={selectedMonth} onValueChange={(value) => {
+              setSelectedMonth(value)
+              trackRankingFilter(`month-${value}`)
+            }}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Mês" />
               </SelectTrigger>
               <SelectContent>
                 {monthOptions.map((month) => (
@@ -128,7 +136,10 @@ export default function HomePage() {
               </SelectContent>
             </Select>
 
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <Select value={selectedYear} onValueChange={(value) => {
+              setSelectedYear(value)
+              trackRankingFilter(`year-${value}`)
+            }}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Ano" />
               </SelectTrigger>
@@ -139,9 +150,7 @@ export default function HomePage() {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
-
-            <Button onClick={fetchRanking} disabled={loading}>
+            </Select>            <Button onClick={fetchRanking} disabled={loading}>
               Atualizar
             </Button>
           </div>
