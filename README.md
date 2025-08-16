@@ -7,7 +7,7 @@ Um sistema web completo para gerenciamento e exibição de ranking de torneios d
 - **Next.js 15** - Framework React com App Router
 - **TypeScript** - Tipagem estática
 - **Prisma** - ORM e gerenciamento de banco de dados
-- **SQLite** - Banco de dados (facilmente alterável para PostgreSQL/MySQL)
+- **PostgreSQL** - Banco de dados principal com Prisma Accelerate
 - **NextAuth.js** - Autenticação
 - **TailwindCSS** - Estilização
 - **shadcn/ui** - Componentes de interface
@@ -65,21 +65,36 @@ cd poker-ranking
 npm install
 ```
 
-### 3. Configure o banco de dados
+### 3. Configure as variáveis de ambiente
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+# Database - Prisma Accelerate (connection pooling and caching)
+DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=YOUR_ACCELERATE_API_KEY"
+
+# Direct Database URL (for migrations and schema operations)
+DIRECT_DATABASE_URL="postgres://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+
+# NextAuth.js
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### 4. Configure o banco de dados PostgreSQL
 ```bash
 # Gerar o cliente Prisma
 npx prisma generate
 
-# Executar migrações
-npx prisma migrate dev --name init
+# Aplicar o schema ao banco
+npx prisma db push
 ```
 
-### 4. Popular com dados de exemplo (opcional)
+### 5. Popular com dados de exemplo (opcional)
 ```bash
 npm run seed
 ```
 
-### 5. Iniciar o servidor de desenvolvimento
+### 6. Iniciar o servidor de desenvolvimento
 ```bash
 npm run dev
 ```
