@@ -49,6 +49,14 @@ export function Navbar() {
                                         <Users className="h-4 w-4" />
                                         <span>Jogadores</span>
                                     </Link>
+
+                                    <Link
+                                        href="/admin/users"
+                                        className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                    >
+                                        <User className="h-4 w-4" />
+                                        <span>Usuários</span>
+                                    </Link>
                                 </>
                             )}
                         </div>
