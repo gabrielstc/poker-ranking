@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
-import { useAnalytics } from "@/hooks/useAnalytics"
 
 interface RankingPlayer {
   position: number
@@ -27,8 +26,6 @@ export default function HomePage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("")
   const [selectedYear, setSelectedYear] = useState<string>("")
   
-  const { trackRankingView, trackRankingFilter, trackPageView } = useAnalytics()
-
   const currentDate = new Date()
   const currentMonth = (currentDate.getMonth() + 1).toString()
   const currentYear = currentDate.getFullYear().toString()
@@ -46,20 +43,19 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json()
         setRanking(data)
-        trackRankingView(selectedMonth, selectedYear)
+        // Mover trackRankingView para fora do useCallback
       }
     } catch (error) {
       console.error('Erro ao buscar ranking:', error)
     } finally {
       setLoading(false)
     }
-  }, [selectedMonth, selectedYear, trackRankingView])
+  }, [selectedMonth, selectedYear])
 
   useEffect(() => {
     setSelectedMonth(currentMonth)
     setSelectedYear(currentYear)
-    trackPageView('ranking_home')
-  }, [currentMonth, currentYear, trackPageView])
+  }, [currentMonth, currentYear])
 
   useEffect(() => {
     if (selectedMonth && selectedYear) {
@@ -122,7 +118,6 @@ export default function HomePage() {
           <div className="flex space-x-4">
             <Select value={selectedMonth} onValueChange={(value) => {
               setSelectedMonth(value)
-              trackRankingFilter(`month-${value}`)
             }}>
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Mês" />
@@ -138,7 +133,6 @@ export default function HomePage() {
 
             <Select value={selectedYear} onValueChange={(value) => {
               setSelectedYear(value)
-              trackRankingFilter(`year-${value}`)
             }}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Ano" />
