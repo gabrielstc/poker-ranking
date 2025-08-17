@@ -7,10 +7,23 @@ export async function GET() {
     try {
         const players = await prisma.player.findMany({
             orderBy: { name: 'asc' },
-            include: {
+            select: {
+                id: true,
+                name: true,
+                nickname: true,
+                // Removido email e phone por segurança na API pública
                 participations: {
-                    include: {
-                        tournament: true
+                    select: {
+                        id: true,
+                        position: true,
+                        points: true,
+                        tournament: {
+                            select: {
+                                id: true,
+                                name: true,
+                                date: true
+                            }
+                        }
                     }
                 }
             }
@@ -39,16 +52,38 @@ export async function POST(request: NextRequest) {
 
         const { name, nickname, email, phone } = await request.json()
 
-        if (!name || !nickname) {
+        // Validação de entrada mais rigorosa
+        if (!name || typeof name !== 'string' || name.trim().length < 2) {
             return NextResponse.json(
-                { error: "Nome e nickname são obrigatórios" },
+                { error: "Nome deve ter pelo menos 2 caracteres" },
+                { status: 400 }
+            )
+        }
+
+        if (!nickname || typeof nickname !== 'string' || nickname.trim().length < 2) {
+            return NextResponse.json(
+                { error: "Nickname deve ter pelo menos 2 caracteres" },
+                { status: 400 }
+            )
+        }
+
+        // Sanitizar dados
+        const sanitizedName = name.trim()
+        const sanitizedNickname = nickname.trim().toLowerCase()
+        const sanitizedEmail = email?.trim() || null
+        const sanitizedPhone = phone?.trim() || null
+
+        // Validar email se fornecido
+        if (sanitizedEmail && !/\S+@\S+\.\S+/.test(sanitizedEmail)) {
+            return NextResponse.json(
+                { error: "Email inválido" },
                 { status: 400 }
             )
         }
 
         // Verificar se o nickname já existe
         const existingPlayer = await prisma.player.findUnique({
-            where: { nickname }
+            where: { nickname: sanitizedNickname }
         })
 
         if (existingPlayer) {
@@ -60,10 +95,10 @@ export async function POST(request: NextRequest) {
 
         const player = await prisma.player.create({
             data: {
-                name,
-                nickname,
-                email,
-                phone,
+                name: sanitizedName,
+                nickname: sanitizedNickname,
+                email: sanitizedEmail,
+                phone: sanitizedPhone,
             },
         })
 

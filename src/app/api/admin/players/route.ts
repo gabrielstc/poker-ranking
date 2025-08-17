@@ -14,22 +14,20 @@ export async function GET() {
             )
         }
 
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                createdAt: true,
-                updatedAt: true
-            },
-            orderBy: {
-                createdAt: "desc"
+        const players = await prisma.player.findMany({
+            orderBy: { name: 'asc' },
+            include: {
+                participations: {
+                    include: {
+                        tournament: true
+                    }
+                }
             }
         })
 
-        return NextResponse.json(users)
+        return NextResponse.json(players)
     } catch (error) {
-        console.error("Erro ao buscar usuários:", error)
+        console.error("Erro ao buscar jogadores:", error)
         return NextResponse.json(
             { error: "Erro interno do servidor" },
             { status: 500 }

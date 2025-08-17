@@ -60,7 +60,7 @@ export default function PlayersPage() {
     const fetchPlayers = async () => {
         try {
             setLoading(true)
-            const response = await fetch("/api/players")
+            const response = await fetch("/api/admin/players")
             if (response.ok) {
                 const data = await response.json()
                 setPlayers(data)
@@ -298,7 +298,7 @@ export default function PlayersPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-center font-bold">
-                                                {stats.totalPoints}
+                                                {stats.totalPoints.toFixed(2)}
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <div className="flex items-center justify-center space-x-1">
