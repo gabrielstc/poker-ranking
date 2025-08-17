@@ -157,7 +157,7 @@ export default function TournamentDetailsPage() {
                 body: JSON.stringify({
                     playerId: formData.playerId,
                     position: formData.position ? parseInt(formData.position) : null,
-                    points: formData.points ? parseInt(formData.points) : null,
+                    points: formData.points ? parseFloat(formData.points) : null,
                     prize: formData.prize ? parseFloat(formData.prize) : null,
                 }),
             })
@@ -569,6 +569,7 @@ export default function TournamentDetailsPage() {
                                     <Input
                                         id="points"
                                         type="number"
+                                        step="0.1"
                                         min="0"
                                         value={formData.points}
                                         onChange={(e) => setFormData(prev => ({ ...prev, points: e.target.value }))}
@@ -696,7 +697,7 @@ export default function TournamentDetailsPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center font-bold">
-                                            {participation.points || "-"}
+                                            {participation.points ? participation.points.toFixed(1) : "-"}
                                         </TableCell>
                                         <TableCell className="text-center">
                                             {participation.prize ? `R$ ${participation.prize.toFixed(2)}` : "-"}
@@ -770,7 +771,7 @@ export default function TournamentDetailsPage() {
                                                 )}
                                                 <span>{entry.position}º lugar</span>
                                             </span>
-                                            <span className="font-medium">{entry.points} pontos</span>
+                                            <span className="font-medium">{entry.points.toFixed(1)} pontos</span>
                                         </div>
                                     ))}
                                     {calculateTournamentPoints(tournament.participations.length).length > 5 && (

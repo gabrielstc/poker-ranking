@@ -199,7 +199,7 @@ export default function HomePage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center font-bold text-lg">
-                      {player.totalPoints}
+                      {player.totalPoints.toFixed(1)}
                     </TableCell>
                     <TableCell className="text-center">{player.tournaments}</TableCell>
                     <TableCell className="text-center">{player.wins}</TableCell>

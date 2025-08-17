@@ -58,7 +58,7 @@ model TournamentParticipation {
   playerId     String
   tournamentId String
   position     Int?   // Posição final no torneio (1º, 2º, 3º, etc.)
-  points       Int?   // Pontos obtidos
+  points       Float? // Pontos obtidos (com até 1 casa decimal)
   prize        Float? // Prêmio em dinheiro
   eliminated   Boolean @default(false)
   eliminatedAt DateTime?
