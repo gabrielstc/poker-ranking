@@ -32,6 +32,13 @@ export function Navbar() {
                                 Ranking
                             </Link>
 
+                            <Link
+                                href="/points-system"
+                                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                            >
+                                Sistema de Pontos
+                            </Link>
+
                             {session && (
                                 <>
                                     <Link
