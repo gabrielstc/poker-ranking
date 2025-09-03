@@ -28,11 +28,11 @@ export default function PointsSystemPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="text-center space-y-4">
-                <h1 className="text-4xl font-bold text-gray-900">Sistema de Pontuação</h1>
-                <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <div className="text-center space-y-2 sm:space-y-4">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Sistema de Pontuação</h1>
+                <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto px-4">
                     Entenda como funciona o sistema de pontuação dos torneios de poker e veja exemplos práticos
                 </p>
             </div>
@@ -174,31 +174,33 @@ export default function PointsSystemPage() {
                                 {example.participants <= 16 && (
                                     <div className="mt-6">
                                         <h4 className="font-semibold mb-3">Distribuição Completa</h4>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Posição</TableHead>
-                                                    <TableHead className="text-center">Pontos</TableHead>
-                                                    <TableHead className="text-center">% do Campeão</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {distribution.map((entry) => (
-                                                    <TableRow key={entry.position}>
-                                                        <TableCell className="flex items-center space-x-2">
-                                                            {getPositionIcon(entry.position)}
-                                                            <span>{entry.position}º lugar</span>
-                                                        </TableCell>
-                                                        <TableCell className="text-center font-bold">
-                                                            {entry.points.toFixed(1)}
-                                                        </TableCell>
-                                                        <TableCell className="text-center">
-                                                            {((entry.points / distribution[0].points) * 100).toFixed(0)}%
-                                                        </TableCell>
+                                        <div className="overflow-x-auto">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Posição</TableHead>
+                                                        <TableHead className="text-center">Pontos</TableHead>
+                                                        <TableHead className="text-center hidden sm:table-cell">% do Campeão</TableHead>
                                                     </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {distribution.map((entry) => (
+                                                        <TableRow key={entry.position}>
+                                                            <TableCell className="flex items-center space-x-2">
+                                                                {getPositionIcon(entry.position)}
+                                                                <span className="text-sm sm:text-base">{entry.position}º lugar</span>
+                                                            </TableCell>
+                                                            <TableCell className="text-center font-bold text-sm sm:text-base">
+                                                                {entry.points.toFixed(1)}
+                                                            </TableCell>
+                                                            <TableCell className="text-center hidden sm:table-cell">
+                                                                {((entry.points / distribution[0].points) * 100).toFixed(0)}%
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>

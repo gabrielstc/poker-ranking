@@ -140,11 +140,11 @@ export default function TournamentsPage() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             {/* Header */}
-            <div className="text-center space-y-4">
-                <h1 className="text-4xl font-bold text-gray-900">Torneios de Poker</h1>
-                <p className="text-lg text-gray-600">
+            <div className="text-center space-y-2 sm:space-y-4">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Torneios de Poker</h1>
+                <p className="text-base sm:text-lg text-gray-600 px-4">
                     Explore os torneios realizados e veja os resultados detalhados
                 </p>
             </div>
@@ -158,9 +158,9 @@ export default function TournamentsPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex space-x-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
                         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                            <SelectTrigger className="w-40">
+                            <SelectTrigger className="w-full sm:w-40">
                                 <SelectValue placeholder="Mês" />
                             </SelectTrigger>
                             <SelectContent>
@@ -173,7 +173,7 @@ export default function TournamentsPage() {
                         </Select>
 
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-32">
+                            <SelectTrigger className="w-full sm:w-32">
                                 <SelectValue placeholder="Ano" />
                             </SelectTrigger>
                             <SelectContent>
@@ -185,7 +185,7 @@ export default function TournamentsPage() {
                             </SelectContent>
                         </Select>
 
-                        <Button onClick={refetchTournaments} disabled={loading}>
+                        <Button onClick={refetchTournaments} disabled={loading} className="w-full sm:w-auto">
                             Atualizar
                         </Button>
                     </div>

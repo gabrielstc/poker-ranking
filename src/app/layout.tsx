@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   keywords: ["poker", "ranking", "torneios", "gestão", "pontuação"],
   authors: [{ name: "Sistema Poker Ranking" }],
   robots: "index, follow",
+  icons: {
+    icon: "/chip.png",
+    shortcut: "/chip.png",
+    apple: "/chip.png",
+  },
 };
 
 export default function RootLayout({
@@ -37,7 +42,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Navbar />
-          <main className="container mx-auto px-4 py-8">
+          <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
             {children}
           </main>
           <Toaster />
