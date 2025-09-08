@@ -2,8 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Calculator, Trophy, Medal, Award, Users, TrendingUp, Info } from "lucide-react"
-import { calculateTournamentPoints } from "@/lib/points-calculator"
+import { Calculator, Trophy, Medal, Award, Users, TrendingUp, Info, Settings, Target } from "lucide-react"
+import { calculateTournamentPoints, getFixedPointsForPosition } from "@/lib/points-calculator"
 
 export default function PointsSystemPage() {
     // Exemplos para diferentes números de participantes
@@ -33,16 +33,75 @@ export default function PointsSystemPage() {
             <div className="text-center space-y-2 sm:space-y-4">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Sistema de Pontuação</h1>
                 <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto px-4">
-                    Entenda como funciona o sistema de pontuação dos torneios de poker e veja exemplos práticos
+                    Entenda como funcionam os dois sistemas de pontuação dos torneios: Exponencial e Fixo
                 </p>
             </div>
 
-            {/* Como Funciona */}
+            {/* Tipos de Sistema */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center space-x-2 text-blue-800">
+                            <TrendingUp className="h-5 w-5" />
+                            <span>Sistema Exponencial</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <p className="text-sm text-blue-700">
+                            Sistema dinâmico que adapta a pontuação baseada no número de participantes do torneio.
+                        </p>
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="text-sm text-blue-800">Escalável com o tamanho do torneio</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="text-sm text-blue-800">Mais participantes = mais pontos</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                <span className="text-sm text-blue-800">Fórmula matemática precisa</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-green-200 bg-green-50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center space-x-2 text-green-800">
+                            <Target className="h-5 w-5" />
+                            <span>Sistema Fixo</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <p className="text-sm text-green-700">
+                            Sistema com pontuação pré-definida para cada posição, independente do número de participantes.
+                        </p>
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm text-green-800">Pontuação consistente</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm text-green-800">Previsível e estável</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm text-green-800">Independe do tamanho</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Como Funciona - Sistema Exponencial */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                         <Calculator className="h-5 w-5" />
-                        <span>Como Funciona o Sistema</span>
+                        <span>Sistema Exponencial - Como Funciona</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -86,9 +145,175 @@ export default function PointsSystemPage() {
                 </CardContent>
             </Card>
 
-            {/* Exemplos Práticos */}
+            {/* Sistema Fixo */}
+            <Card className="border-green-200">
+                <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-green-800">
+                        <Target className="h-5 w-5" />
+                        <span>Sistema Fixo - Tabela de Pontuação</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-green-700">
+                        No sistema fixo, cada posição tem uma pontuação pré-determinada, independente do número de participantes no torneio.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h4 className="font-semibold mb-3">Tabela de Pontuação Fixa</h4>
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Posição</TableHead>
+                                            <TableHead className="text-center">Pontos</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {Array.from({ length: 30 }, (_, i) => {
+                                            const position = i + 1
+                                            const points = getFixedPointsForPosition(position)
+                                            return (
+                                                <TableRow key={position} className={position <= 3 ? "bg-green-100" : ""}>
+                                                    <TableCell className="flex items-center space-x-2">
+                                                        {getPositionIcon(position)}
+                                                        <span>{position}º</span>
+                                                    </TableCell>
+                                                    <TableCell className="text-center font-bold">
+                                                        {points > 0 ? `${points} pts` : "-"}
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="font-semibold mb-3">Características do Sistema Fixo</h4>
+                            <div className="space-y-3">
+                                <div className="bg-green-50 p-3 rounded border border-green-200">
+                                    <h5 className="font-semibold text-green-800 mb-2">Vantagens</h5>
+                                    <ul className="text-sm text-green-700 space-y-1">
+                                        <li>• Pontuação previsível e consistente</li>
+                                        <li>• Não varia com o número de participantes</li>
+                                        <li>• Facilita planejamento de estratégia</li>
+                                        <li>• Simples de entender e aplicar</li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                                    <h5 className="font-semibold text-yellow-800 mb-2">Estatísticas Principais</h5>
+                                    <ul className="text-sm text-yellow-700 space-y-1">
+                                        <li>• Campeão: <strong>155 pontos</strong></li>
+                                        <li>• Vice: <strong>125 pontos</strong></li>
+                                        <li>• 3º lugar: <strong>110 pontos</strong></li>
+                                        <li>• Posições com pontuação: <strong>até 30º lugar</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Comparação entre Sistemas */}
+            <Card className="border-purple-200 bg-purple-50">
+                <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-purple-800">
+                        <Settings className="h-5 w-5" />
+                        <span>Comparação: Fixo vs Exponencial</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        <p className="text-purple-700">
+                            Compare como os dois sistemas distribuem pontos para diferentes tamanhos de torneio:
+                        </p>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            {[8, 16, 32].map((participants) => {
+                                const exponentialDistribution = calculateTournamentPoints(participants)
+                                const fixedFirst = getFixedPointsForPosition(1)
+                                const fixedSecond = getFixedPointsForPosition(2)
+                                const fixedThird = getFixedPointsForPosition(3)
+                                
+                                return (
+                                    <div key={participants} className="bg-white p-4 rounded-lg border border-purple-200">
+                                        <h5 className="font-semibold text-center mb-3 text-purple-800">
+                                            {participants} Participantes
+                                        </h5>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
+                                                <span className="text-sm">🏆 1º lugar</span>
+                                                <div className="text-right text-xs">
+                                                    <div className="font-bold text-blue-600">
+                                                        Exp: {exponentialDistribution[0].points.toFixed(1)}
+                                                    </div>
+                                                    <div className="font-bold text-green-600">
+                                                        Fixo: {fixedFirst}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                                <span className="text-sm">🥈 2º lugar</span>
+                                                <div className="text-right text-xs">
+                                                    <div className="font-bold text-blue-600">
+                                                        Exp: {exponentialDistribution[1].points.toFixed(1)}
+                                                    </div>
+                                                    <div className="font-bold text-green-600">
+                                                        Fixo: {fixedSecond}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
+                                                <span className="text-sm">🥉 3º lugar</span>
+                                                <div className="text-right text-xs">
+                                                    <div className="font-bold text-blue-600">
+                                                        Exp: {exponentialDistribution[2].points.toFixed(1)}
+                                                    </div>
+                                                    <div className="font-bold text-green-600">
+                                                        Fixo: {fixedThird}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        <div className="bg-white p-4 rounded-lg border border-purple-200">
+                            <h5 className="font-semibold mb-2 text-purple-800">Resumo das Diferenças</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <h6 className="font-medium text-blue-800 mb-1">Sistema Exponencial</h6>
+                                    <ul className="text-blue-700 space-y-1">
+                                        <li>• Adapta-se ao tamanho do torneio</li>
+                                        <li>• Torneios maiores = mais pontos</li>
+                                        <li>• Incentiva participação em eventos grandes</li>
+                                        <li>• Distribuição mais dinâmica</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h6 className="font-medium text-green-800 mb-1">Sistema Fixo</h6>
+                                    <ul className="text-green-700 space-y-1">
+                                        <li>• Pontuação sempre igual</li>
+                                        <li>• Previsibilidade total</li>
+                                        <li>• Foco na consistência</li>
+                                        <li>• Simplicidade de entendimento</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Exemplos Práticos - Sistema Exponencial */}
             <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-center">Exemplos Práticos</h2>
+                <h2 className="text-2xl font-bold text-center">Exemplos Práticos - Sistema Exponencial</h2>
                 
                 {examples.map((example) => {
                     const distribution = calculateTournamentPoints(example.participants)
@@ -259,10 +484,10 @@ export default function PointsSystemPage() {
                 </CardContent>
             </Card>
 
-            {/* Vantagens do Sistema */}
-            <Card className="bg-green-50 border-green-200">
+            {/* Vantagens do Sistema Exponencial */}
+            <Card className="bg-blue-50 border-blue-200">
                 <CardHeader>
-                    <CardTitle className="text-green-800">Vantagens do Sistema de Pontuação</CardTitle>
+                    <CardTitle className="text-blue-800">Vantagens do Sistema Exponencial</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

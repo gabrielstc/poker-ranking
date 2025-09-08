@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Trophy, Medal, Award, Users, Calendar, DollarSign } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { createLocalDate } from "@/lib/date-utils"
 import Link from "next/link"
 
 interface Player {
@@ -142,7 +143,7 @@ export default function TournamentDetailsPage() {
                         <div className="flex items-center space-x-4 mt-2">
                             <div className="flex items-center space-x-1 text-gray-600">
                                 <Calendar className="h-4 w-4" />
-                                <span>{format(new Date(tournament.date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                                <span>{format(createLocalDate(tournament.date), "dd/MM/yyyy", { locale: ptBR })}</span>
                             </div>
                             {tournament.buyIn && (
                                 <div className="flex items-center space-x-1 text-gray-600">

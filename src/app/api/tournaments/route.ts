@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { parseDateFromInput } from "@/lib/date-utils"
 
 export async function GET(request: NextRequest) {
     try {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
         const tournament = await prisma.tournament.create({
             data: {
                 name,
-                date: new Date(date),
+                date: parseDateFromInput(date),
                 buyIn: buyIn || null,
                 description,
                 status: status || 'UPCOMING',

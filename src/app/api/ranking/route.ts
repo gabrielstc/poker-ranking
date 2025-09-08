@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { parseDateFromInput } from "@/lib/date-utils"
 
 export async function GET(request: NextRequest) {
     try {
@@ -10,8 +11,8 @@ export async function GET(request: NextRequest) {
         let dateFilter = {}
 
         if (fromDate && toDate) {
-            const startDate = new Date(fromDate)
-            const endDate = new Date(toDate)
+            const startDate = parseDateFromInput(fromDate)
+            const endDate = parseDateFromInput(toDate)
             endDate.setHours(23, 59, 59, 999) // Fim do dia
 
             dateFilter = {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { parseDateFromInput } from "@/lib/date-utils"
 
 export async function GET(
     request: NextRequest,
@@ -79,7 +80,7 @@ export async function PUT(
             where: { id },
             data: {
                 name,
-                date: new Date(date),
+                date: parseDateFromInput(date),
                 buyIn: buyIn || null,
                 description,
                 status,

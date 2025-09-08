@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
+import { formatDateToBR } from "@/lib/date-utils"
 
 interface RankingPlayer {
   position: number
@@ -27,11 +28,13 @@ export default function HomePage() {
   const [fromDate, setFromDate] = useState<string>("")
   const [toDate, setToDate] = useState<string>("")
   
-  const currentDate = new Date()
-  const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-    .toISOString().split('T')[0]
-  const currentMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
-    .toISOString().split('T')[0]
+  // Converter para formato YYYY-MM-DD no timezone local
+  const formatDateToLocal = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
 
   const fetchRanking = useCallback(async () => {
     try {
@@ -56,9 +59,14 @@ export default function HomePage() {
   }, [fromDate, toDate])
 
   useEffect(() => {
-    setFromDate(currentMonthStart)
-    setToDate(currentMonthEnd)
-  }, [currentMonthStart, currentMonthEnd])
+    // Calcular as datas diretamente no useEffect para evitar dependências desnecessárias
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    
+    setFromDate(formatDateToLocal(monthStart))
+    setToDate(formatDateToLocal(monthEnd))
+  }, []) // Executar apenas uma vez na inicialização
 
   useEffect(() => {
     if (fromDate && toDate) {
@@ -137,7 +145,7 @@ export default function HomePage() {
             <Users className="h-5 w-5" />
             <span>
               Ranking {fromDate && toDate &&
-                `- ${new Date(fromDate).toLocaleDateString('pt-BR')} até ${new Date(toDate).toLocaleDateString('pt-BR')}`
+                `- ${formatDateToBR(fromDate)} até ${formatDateToBR(toDate)}`
               }
             </span>
           </CardTitle>

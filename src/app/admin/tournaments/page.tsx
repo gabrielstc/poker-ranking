@@ -11,10 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Calendar, Plus, Edit, Trash, Users, Trophy, Eye } from "lucide-react"
+import { Calendar, Plus, Edit, Trash, Users, Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { formatDateForInput, createLocalDate } from "@/lib/date-utils"
 import Link from "next/link"
 
 interface Tournament {
@@ -121,7 +122,7 @@ export default function TournamentsPage() {
         setEditingTournament(tournament)
         setFormData({
             name: tournament.name,
-            date: format(new Date(tournament.date), "yyyy-MM-dd"),
+            date: formatDateForInput(tournament.date),
             buyIn: tournament.buyIn?.toString() || "",
             description: tournament.description || "",
             status: tournament.status,
@@ -339,7 +340,7 @@ export default function TournamentsPage() {
                                     <TableRow key={tournament.id}>
                                         <TableCell className="font-medium">{tournament.name}</TableCell>
                                         <TableCell>
-                                            {format(new Date(tournament.date), "dd/MM/yyyy", { locale: ptBR })}
+                                            {format(createLocalDate(tournament.date), "dd/MM/yyyy", { locale: ptBR })}
                                         </TableCell>
                                         <TableCell>
                                             {tournament.buyIn ? `R$ ${tournament.buyIn.toFixed(2)}` : "-"}
