@@ -31,6 +31,44 @@ export function calculateTournamentPoints(totalParticipants: number): PointsCalc
     return pointsDistribution
 }
 
+
+const FIXED_POINTS_TABLE: Record<number, number> = {
+    1: 155,
+    2: 125,
+    3: 110,
+    4: 95,
+    5: 90,
+    6: 85,
+    7: 80,
+    8: 75,
+    9: 70,
+    10: 65,
+    11: 55,
+    12: 52,
+    13: 50,
+    14: 48,
+    15: 46,
+    16: 44,
+    17: 42,
+    18: 40,
+    19: 38,
+    20: 36,
+    21: 35,
+    22: 34,
+    23: 33,
+    24: 32,
+    25: 31,
+    26: 30,
+    27: 29,
+    28: 28,
+    29: 27,
+    30: 26,
+}
+
+export function getFixedPointsForPosition(position: number): number {
+    return FIXED_POINTS_TABLE[position] ?? 0
+}
+
 export function getPointsForPosition(position: number, totalParticipants: number): number {
     // Nova fórmula direta: ROUND(SQRT(total_jogadores) * POWER(total_jogadores - posição + 1, 1.3), 1)
     if (position > totalParticipants) return 0
@@ -42,12 +80,23 @@ export function getPointsForPosition(position: number, totalParticipants: number
     return Math.max(points, 0)
 }
 
+export function getPointsForPositionByType(
+    position: number,
+    totalParticipants: number,
+    type: "FIXO" | "EXPONENCIAL"
+): number {
+    if (type === "FIXO") {
+        return getFixedPointsForPosition(position)
+    }
+    return getPointsForPosition(position, totalParticipants)
+}
+
 // Função para recalcular automaticamente todos os pontos de um torneio
 export function recalculateAllTournamentPoints(participations: Array<{
     id: string
     position: number | null
     points: number | null
-}>): Array<{
+}>, type: "FIXO" | "EXPONENCIAL" = "EXPONENCIAL"): Array<{
     id: string
     position: number | null
     points: number
@@ -63,7 +112,7 @@ export function recalculateAllTournamentPoints(participations: Array<{
             }
         }
 
-        const calculatedPoints = getPointsForPosition(participation.position, totalParticipants)
+        const calculatedPoints = getPointsForPositionByType(participation.position, totalParticipants, type)
 
         return {
             id: participation.id,
