@@ -4,14 +4,15 @@ import { prisma } from "@/lib/prisma"
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
-        const month = searchParams.get('month')
-        const year = searchParams.get('year')
+        const fromDate = searchParams.get('from')
+        const toDate = searchParams.get('to')
 
         let dateFilter = {}
 
-        if (month && year) {
-            const startDate = new Date(parseInt(year), parseInt(month) - 1, 1)
-            const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59)
+        if (fromDate && toDate) {
+            const startDate = new Date(fromDate)
+            const endDate = new Date(toDate)
+            endDate.setHours(23, 59, 59, 999) // Fim do dia
 
             dateFilter = {
                 date: {

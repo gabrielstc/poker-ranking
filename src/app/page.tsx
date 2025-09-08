@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
 
@@ -23,20 +24,22 @@ interface RankingPlayer {
 export default function HomePage() {
   const [ranking, setRanking] = useState<RankingPlayer[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedMonth, setSelectedMonth] = useState<string>("")
-  const [selectedYear, setSelectedYear] = useState<string>("")
+  const [fromDate, setFromDate] = useState<string>("")
+  const [toDate, setToDate] = useState<string>("")
   
   const currentDate = new Date()
-  const currentMonth = (currentDate.getMonth() + 1).toString()
-  const currentYear = currentDate.getFullYear().toString()
+  const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    .toISOString().split('T')[0]
+  const currentMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+    .toISOString().split('T')[0]
 
   const fetchRanking = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      if (selectedMonth && selectedYear) {
-        params.append('month', selectedMonth)
-        params.append('year', selectedYear)
+      if (fromDate && toDate) {
+        params.append('from', fromDate)
+        params.append('to', toDate)
       }
 
       const response = await fetch(`/api/ranking?${params}`)
@@ -50,18 +53,18 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }, [selectedMonth, selectedYear])
+  }, [fromDate, toDate])
 
   useEffect(() => {
-    setSelectedMonth(currentMonth)
-    setSelectedYear(currentYear)
-  }, [currentMonth, currentYear])
+    setFromDate(currentMonthStart)
+    setToDate(currentMonthEnd)
+  }, [currentMonthStart, currentMonthEnd])
 
   useEffect(() => {
-    if (selectedMonth && selectedYear) {
+    if (fromDate && toDate) {
       fetchRanking()
     }
-  }, [selectedMonth, selectedYear, fetchRanking])
+  }, [fromDate, toDate, fetchRanking])
 
   const getPositionIcon = (position: number) => {
     switch (position) {
@@ -74,26 +77,6 @@ export default function HomePage() {
       default:
         return <span className="h-6 w-6 flex items-center justify-center text-sm font-bold text-gray-600">{position}</span>
     }
-  }
-
-  const monthOptions = [
-    { value: "1", label: "Janeiro" },
-    { value: "2", label: "Fevereiro" },
-    { value: "3", label: "Março" },
-    { value: "4", label: "Abril" },
-    { value: "5", label: "Maio" },
-    { value: "6", label: "Junho" },
-    { value: "7", label: "Julho" },
-    { value: "8", label: "Agosto" },
-    { value: "9", label: "Setembro" },
-    { value: "10", label: "Outubro" },
-    { value: "11", label: "Novembro" },
-    { value: "12", label: "Dezembro" },
-  ]
-
-  const years = []
-  for (let year = currentDate.getFullYear(); year >= 2020; year--) {
-    years.push(year.toString())
   }
 
   return (
@@ -116,38 +99,33 @@ export default function HomePage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Select value={selectedMonth} onValueChange={(value) => {
-              setSelectedMonth(value)
-            }}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Mês" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="from-date">De:</Label>
+              <Input
+                id="from-date"
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-full sm:w-40"
+              />
+            </div>
 
-            <Select value={selectedYear} onValueChange={(value) => {
-              setSelectedYear(value)
-            }}>
-              <SelectTrigger className="w-full sm:w-32">
-                <SelectValue placeholder="Ano" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button onClick={fetchRanking} disabled={loading} className="w-full sm:w-auto">
-              Atualizar
-            </Button>
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="to-date">Até:</Label>
+              <Input
+                id="to-date"
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-full sm:w-40"
+              />
+            </div>
+
+            <div className="flex items-end">
+              <Button onClick={fetchRanking} disabled={loading} className="w-full sm:w-auto">
+                Atualizar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -158,8 +136,8 @@ export default function HomePage() {
           <CardTitle className="flex items-center space-x-2">
             <Users className="h-5 w-5" />
             <span>
-              Ranking {selectedMonth && selectedYear &&
-                `- ${monthOptions.find(m => m.value === selectedMonth)?.label} ${selectedYear}`
+              Ranking {fromDate && toDate &&
+                `- ${new Date(fromDate).toLocaleDateString('pt-BR')} até ${new Date(toDate).toLocaleDateString('pt-BR')}`
               }
             </span>
           </CardTitle>
