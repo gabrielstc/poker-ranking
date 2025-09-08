@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const { name, date, buyIn, description, status } = await request.json()
+        const { name, date, buyIn, description, status, tipo } = await request.json()
 
         if (!name || !date) {
             return NextResponse.json(
@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
                 buyIn: buyIn || null,
                 description,
                 status: status || 'UPCOMING',
+                type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL') ? tipo : 'EXPONENCIAL',
             },
         })
 

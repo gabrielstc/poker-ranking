@@ -53,7 +53,7 @@ export async function PUT(
             )
         }
 
-        const { name, date, buyIn, description, status } = await request.json()
+        const { name, date, buyIn, description, status, tipo } = await request.json()
         const { id } = await params
 
         if (!name || !date) {
@@ -83,6 +83,7 @@ export async function PUT(
                 buyIn: buyIn || null,
                 description,
                 status,
+                type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL') ? tipo : undefined,
             },
         })
 

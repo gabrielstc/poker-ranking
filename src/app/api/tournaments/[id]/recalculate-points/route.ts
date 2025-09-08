@@ -32,8 +32,16 @@ export async function POST(
             }
         })
 
+        const tournament = await prisma.tournament.findUnique({
+            where: { id: tournamentId },
+            select: { type: true }
+        })
+
         // Calcular novos pontos
-        const updatedParticipations = recalculateAllTournamentPoints(participations)
+        const updatedParticipations = recalculateAllTournamentPoints(
+            participations,
+            tournament?.type === 'FIXO' ? 'FIXO' : 'EXPONENCIAL'
+        )
 
         // Atualizar no banco de dados
         const updatePromises = updatedParticipations.map(participation =>

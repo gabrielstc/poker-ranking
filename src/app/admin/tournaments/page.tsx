@@ -24,6 +24,7 @@ interface Tournament {
     buyIn: number | null
     description: string | null
     status: string
+    type?: "FIXO" | "EXPONENCIAL"
     participations: Array<{
         id: string
         player: {
@@ -48,7 +49,8 @@ export default function TournamentsPage() {
         date: "",
         buyIn: "",
         description: "",
-        status: "UPCOMING"
+        status: "UPCOMING",
+        tipo: "EXPONENCIAL" as "FIXO" | "EXPONENCIAL",
     })
 
     useEffect(() => {
@@ -122,7 +124,8 @@ export default function TournamentsPage() {
             date: format(new Date(tournament.date), "yyyy-MM-dd"),
             buyIn: tournament.buyIn?.toString() || "",
             description: tournament.description || "",
-            status: tournament.status
+            status: tournament.status,
+            tipo: tournament.type || "EXPONENCIAL",
         })
         setDialogOpen(true)
     }
@@ -152,7 +155,8 @@ export default function TournamentsPage() {
             date: "",
             buyIn: "",
             description: "",
-            status: "UPCOMING"
+            status: "UPCOMING",
+            tipo: "EXPONENCIAL",
         })
         setEditingTournament(null)
     }
@@ -263,6 +267,19 @@ export default function TournamentsPage() {
                             </div>
 
                             <div>
+                                <Label htmlFor="tipo">Tipo</Label>
+                                <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as "FIXO" | "EXPONENCIAL" }))}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="EXPONENCIAL">Exponencial</SelectItem>
+                                        <SelectItem value="FIXO">Fixo</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div>
                                 <Label htmlFor="description">Descrição</Label>
                                 <Input
                                     id="description"
@@ -312,6 +329,7 @@ export default function TournamentsPage() {
                                     <TableHead>Data</TableHead>
                                     <TableHead>Buy-in</TableHead>
                                     <TableHead>Status</TableHead>
+                                    <TableHead>Tipo</TableHead>
                                     <TableHead>Participantes</TableHead>
                                     <TableHead>Ações</TableHead>
                                 </TableRow>
@@ -327,6 +345,7 @@ export default function TournamentsPage() {
                                             {tournament.buyIn ? `R$ ${tournament.buyIn.toFixed(2)}` : "-"}
                                         </TableCell>
                                         <TableCell>{getStatusBadge(tournament.status)}</TableCell>
+                                        <TableCell>{tournament.type === "FIXO" ? "Fixo" : "Exponencial"}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center space-x-1">
                                                 <Users className="h-4 w-4" />
