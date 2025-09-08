@@ -44,6 +44,7 @@ model Tournament {
   buyIn       Float?
   description String?
   status      TournamentStatus @default(UPCOMING)
+  type        TournamentType   @default(EXPONENCIAL)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -76,4 +77,9 @@ enum TournamentStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+enum TournamentType {
+  FIXO
+  EXPONENCIAL
 }

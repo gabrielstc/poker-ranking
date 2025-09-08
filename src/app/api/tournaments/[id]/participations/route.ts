@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getPointsForPosition } from "@/lib/points-calculator"
+import { getPointsForPositionByType } from "@/lib/points-calculator"
 
 export async function POST(
     request: NextRequest,
@@ -94,7 +94,12 @@ export async function POST(
         // Calcular pontos automaticamente se uma posição foi definida
         let calculatedPoints = points || null
         if (position && !points) {
-            calculatedPoints = getPointsForPosition(position, totalParticipants)
+            const tournamentType = tournament.type as "FIXO" | "EXPONENCIAL" | undefined
+            calculatedPoints = getPointsForPositionByType(
+                position,
+                totalParticipants,
+                tournamentType === "FIXO" ? "FIXO" : "EXPONENCIAL"
+            )
         }
 
         const participation = await prisma.tournamentParticipation.create({
