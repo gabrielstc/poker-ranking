@@ -79,11 +79,11 @@ export default function HomePage() {
       case 1:
         return <Trophy className="h-6 w-6 text-yellow-500" />
       case 2:
-        return <Medal className="h-6 w-6 text-gray-400" />
+        return <Medal className="h-6 w-6 text-muted-foreground" />
       case 3:
         return <Award className="h-6 w-6 text-amber-600" />
       default:
-        return <span className="h-6 w-6 flex items-center justify-center text-sm font-bold text-gray-600">{position}</span>
+        return <span className="h-6 w-6 flex items-center justify-center text-sm font-bold text-muted-foreground">{position}</span>
     }
   }
 
@@ -91,8 +91,8 @@ export default function HomePage() {
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="text-center space-y-2 sm:space-y-4">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Ranking Geral</h1>
-        <p className="text-base sm:text-lg text-gray-600 px-4">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Ranking Geral</h1>
+        <p className="text-base sm:text-lg text-muted-foreground px-4">
           Acompanhe o desempenho dos jogadores nos torneios
         </p>
       </div>
@@ -154,12 +154,12 @@ export default function HomePage() {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-gray-600">Carregando ranking...</p>
+              <p className="mt-2 text-muted-foreground">Carregando ranking...</p>
             </div>
           ) : ranking.length === 0 ? (
             <div className="text-center py-8">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Nenhum dado encontrado para este período</p>
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Nenhum dado encontrado para este período</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -176,14 +176,14 @@ export default function HomePage() {
                 </TableHeader>
                 <TableBody>
                   {ranking.map((player) => (
-                    <TableRow key={player.player.id} className={player.position <= 3 ? "bg-yellow-50" : ""}>
+                    <TableRow key={player.player.id} className={player.position <= 3 ? "bg-accent/50" : ""}>
                       <TableCell className="flex items-center justify-center">
                         {getPositionIcon(player.position)}
                       </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium text-sm sm:text-base">{player.player.name}</div>
-                          <div className="text-xs sm:text-sm text-gray-500">@{player.player.nickname}</div>
+                          <div className="text-xs sm:text-sm text-muted-foreground">@{player.player.nickname}</div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-bold text-base sm:text-lg">

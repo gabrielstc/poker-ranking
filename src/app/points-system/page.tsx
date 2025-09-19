@@ -19,11 +19,11 @@ export default function PointsSystemPage() {
             case 1:
                 return <Trophy className="h-5 w-5 text-yellow-500" />
             case 2:
-                return <Medal className="h-5 w-5 text-gray-400" />
+                return <Medal className="h-5 w-5 text-muted-foreground" />
             case 3:
                 return <Award className="h-5 w-5 text-amber-600" />
             default:
-                return <span className="h-5 w-5 flex items-center justify-center text-sm font-bold text-gray-600">{position}</span>
+                return <span className="h-5 w-5 flex items-center justify-center text-sm font-bold text-muted-foreground">{position}</span>
         }
     }
 
@@ -31,8 +31,8 @@ export default function PointsSystemPage() {
         <div className="space-y-6 sm:space-y-8">
             {/* Header */}
             <div className="text-center space-y-2 sm:space-y-4">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Sistema de Pontuação</h1>
-                <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto px-4">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Sistema de Pontuação</h1>
+                <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto px-4">
                     Entenda como funcionam os dois sistemas de pontuação dos torneios: Exponencial e Fixo
                 </p>
             </div>

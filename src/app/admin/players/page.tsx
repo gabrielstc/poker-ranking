@@ -171,7 +171,7 @@ export default function PlayersPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Gerenciar Jogadores</h1>
-                    <p className="text-gray-600">Cadastre e gerencie jogadores de poker</p>
+                    <p className="text-muted-foreground">Cadastre e gerencie jogadores de poker</p>
                 </div>
 
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -255,13 +255,13 @@ export default function PlayersPage() {
                     {loading ? (
                         <div className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                            <p className="mt-2 text-gray-600">Carregando jogadores...</p>
+                            <p className="mt-2 text-muted-foreground">Carregando jogadores...</p>
                         </div>
                     ) : players.length === 0 ? (
                         <div className="text-center py-8">
-                            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">Nenhum jogador encontrado</p>
-                            <p className="text-sm text-gray-500">Cadastre o primeiro jogador para começar</p>
+                            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">Nenhum jogador encontrado</p>
+                            <p className="text-sm text-muted-foreground/70">Cadastre o primeiro jogador para começar</p>
                         </div>
                     ) : (
                         <Table>
@@ -285,7 +285,7 @@ export default function PlayersPage() {
                                             <TableCell className="font-medium">{player.name}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center space-x-1">
-                                                    <span className="text-gray-500">@</span>
+                                                    <span className="text-muted-foreground">@</span>
                                                     <span>{player.nickname}</span>
                                                 </div>
                                             </TableCell>

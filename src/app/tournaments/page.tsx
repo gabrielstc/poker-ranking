@@ -95,10 +95,10 @@ export default function TournamentsPage() {
 
     const getStatusBadge = (status: string) => {
         const badges = {
-            UPCOMING: "bg-blue-100 text-blue-800",
-            IN_PROGRESS: "bg-yellow-100 text-yellow-800",
-            COMPLETED: "bg-green-100 text-green-800",
-            CANCELLED: "bg-red-100 text-red-800"
+            UPCOMING: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+            IN_PROGRESS: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+            COMPLETED: "bg-green-500/20 text-green-300 border border-green-500/30",
+            CANCELLED: "bg-red-500/20 text-red-300 border border-red-500/30"
         }
 
         const labels = {
@@ -144,8 +144,8 @@ export default function TournamentsPage() {
         <div className="space-y-6 sm:space-y-8">
             {/* Header */}
             <div className="text-center space-y-2 sm:space-y-4">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">Torneios de Poker</h1>
-                <p className="text-base sm:text-lg text-gray-600 px-4">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">Torneios de Poker</h1>
+                <p className="text-base sm:text-lg text-muted-foreground px-4">
                     Explore os torneios realizados e veja os resultados detalhados
                 </p>
             </div>
@@ -209,13 +209,13 @@ export default function TournamentsPage() {
                     {loading ? (
                         <div className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                            <p className="mt-2 text-gray-600">Carregando torneios...</p>
+                            <p className="mt-2 text-muted-foreground">Carregando torneios...</p>
                         </div>
                     ) : tournaments.length === 0 ? (
                         <div className="text-center py-8">
-                            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">Nenhum torneio encontrado para este período</p>
-                            <p className="text-sm text-gray-500">Tente selecionar outro mês/ano</p>
+                            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">Nenhum torneio encontrado para este período</p>
+                            <p className="text-sm text-muted-foreground/70">Tente selecionar outro mês/ano</p>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -224,7 +224,7 @@ export default function TournamentsPage() {
                                 {tournaments.map((tournament) => {
                                     const winner = getWinner(tournament)
                                     return (
-                                        <Card key={tournament.id} className="border border-gray-200">
+                                        <Card key={tournament.id} className="border">
                                             <CardContent className="p-4">
                                                 <div className="space-y-3">
                                                     <div className="flex justify-between items-start">
@@ -232,7 +232,7 @@ export default function TournamentsPage() {
                                                         {getStatusBadge(tournament.status)}
                                                     </div>
                                                     
-                                                    <div className="text-sm text-gray-600 space-y-1">
+                                                    <div className="text-sm text-muted-foreground space-y-1">
                                                         <div className="flex items-center space-x-2">
                                                             <Calendar className="h-4 w-4" />
                                                             <span>{format(createLocalDate(tournament.date), "dd/MM/yyyy", { locale: ptBR })}</span>
@@ -312,11 +312,11 @@ export default function TournamentsPage() {
                                                                 <Trophy className="h-4 w-4 text-yellow-500" />
                                                                 <div>
                                                                     <div className="font-medium">{winner.name}</div>
-                                                                    <div className="text-xs text-gray-500">@{winner.nickname}</div>
+                                                                    <div className="text-xs text-muted-foreground">@{winner.nickname}</div>
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <span className="text-gray-400">-</span>
+                                                            <span className="text-muted-foreground">-</span>
                                                         )}
                                                     </TableCell>
                                                     <TableCell>

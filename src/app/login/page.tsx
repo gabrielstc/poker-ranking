@@ -57,7 +57,7 @@ export default function LoginPage() {
                     <CardTitle className="text-2xl text-center">
                         Entrar
                     </CardTitle>
-                    <p className="text-sm text-gray-600 text-center">
+                    <p className="text-sm text-muted-foreground text-center">
                         Entre com suas credenciais para acessar o painel administrativo
                     </p>
                 </CardHeader>

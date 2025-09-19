@@ -18,7 +18,7 @@ export function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     return (
-        <nav className="border-b bg-white">
+        <nav className="border-b bg-background">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-20">
                     <div className="flex items-center space-x-4 lg:space-x-8">
@@ -30,28 +30,28 @@ export function Navbar() {
                                 height={96} 
                                 className="h-24 w-24"
                             />
-                            <span className="font-bold text-lg lg:text-xl">Suprema Five Series</span>
+                            <span className="font-bold text-lg lg:text-xl text-foreground">Suprema Five Series</span>
                         </Link>
 
                         {/* Desktop Navigation */}
                         <div className="hidden lg:flex items-center space-x-6">
                             <Link
                                 href="/"
-                                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
                             >
                                 Ranking
                             </Link>
 
                              <Link
                                 href="/tournaments"
-                                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
                             >
                                 Torneios
                             </Link>
 
                             <Link
                                 href="/points-system"
-                                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
                             >
                                 Sistema de Pontos
                             </Link>
@@ -60,7 +60,7 @@ export function Navbar() {
                                 href="/REGULAMENTO RANKING 2025 SUPREMA FIVE SERIES.pdf"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
                             >
                                 Regulamento
                             </a>
@@ -71,7 +71,7 @@ export function Navbar() {
                                 <>
                                     <Link
                                         href="/admin/tournaments"
-                                        className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
                                     >
                                         <Calendar className="h-4 w-4" />
                                         <span>Torneios</span>
@@ -79,7 +79,7 @@ export function Navbar() {
 
                                     <Link
                                         href="/admin/players"
-                                        className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
                                     >
                                         <Users className="h-4 w-4" />
                                         <span>Jogadores</span>
@@ -87,7 +87,7 @@ export function Navbar() {
 
                                     <Link
                                         href="/admin/users"
-                                        className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
                                     >
                                         <User className="h-4 w-4" />
                                         <span>Usuários</span>
@@ -135,25 +135,25 @@ export function Navbar() {
 
                 {/* Mobile Navigation Menu */}
                 {isMenuOpen && (
-                    <div className="lg:hidden border-t bg-white">
+                    <div className="lg:hidden border-t bg-background">
                         <div className="px-2 pt-2 pb-3 space-y-1">
                             <Link
                                 href="/"
-                                className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium"
+                                className="block px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Ranking
                             </Link>
                             <Link
                                 href="/tournaments"
-                                className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium"
+                                className="block px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Torneios
                             </Link>
                             <Link
                                 href="/points-system"
-                                className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium"
+                                className="block px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Sistema de Pontos
@@ -162,7 +162,7 @@ export function Navbar() {
                                 href="/REGULAMENTO RANKING 2025 SUPREMA FIVE SERIES.pdf"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium"
+                                className="block px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Regulamento
@@ -172,7 +172,7 @@ export function Navbar() {
                                 <>
                                     <Link
                                         href="/admin/tournaments"
-                                        className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center space-x-2"
+                                        className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         <Calendar className="h-4 w-4" />
@@ -180,7 +180,7 @@ export function Navbar() {
                                     </Link>
                                     <Link
                                         href="/admin/players"
-                                        className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center space-x-2"
+                                        className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         <Users className="h-4 w-4" />
@@ -188,7 +188,7 @@ export function Navbar() {
                                     </Link>
                                     <Link
                                         href="/admin/users"
-                                        className="block px-3 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center space-x-2"
+                                        className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         <User className="h-4 w-4" />
@@ -201,7 +201,7 @@ export function Navbar() {
                             <div className="border-t pt-3 mt-3">
                                 {session ? (
                                     <div className="px-3 py-2">
-                                        <div className="text-sm text-gray-500 mb-2">
+                                        <div className="text-sm text-muted-foreground mb-2">
                                             {session.user?.name || session.user?.email}
                                         </div>
                                         <Button

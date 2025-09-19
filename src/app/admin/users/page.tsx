@@ -154,7 +154,7 @@ export default function UsersPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Gerenciar Usuários</h1>
-                    <p className="text-gray-600">Crie e gerencie contas de usuário do sistema</p>
+                    <p className="text-muted-foreground">Crie e gerencie contas de usuário do sistema</p>
                 </div>
 
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -247,13 +247,13 @@ export default function UsersPage() {
                     {loading ? (
                         <div className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                            <p className="mt-2 text-gray-600">Carregando usuários...</p>
+                            <p className="mt-2 text-muted-foreground">Carregando usuários...</p>
                         </div>
                     ) : users.length === 0 ? (
                         <div className="text-center py-8">
-                            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600">Nenhum usuário encontrado</p>
-                            <p className="text-sm text-gray-500">Crie o primeiro usuário para começar</p>
+                            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+                            <p className="text-sm text-muted-foreground/70">Crie o primeiro usuário para começar</p>
                         </div>
                     ) : (
                         <Table>
