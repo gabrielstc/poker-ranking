@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ClubProvider } from "@/contexts/ClubContext";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -41,13 +42,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
         <AuthProvider>
-          <Navbar />
-          <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
-            {children}
-          </main>
-          <Toaster />
-          <SpeedInsights />
-          <Analytics />
+          <ClubProvider>
+            <Navbar />
+            <main className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
+              {children}
+            </main>
+            <Toaster />
+            <SpeedInsights />
+            <Analytics />
+          </ClubProvider>
         </AuthProvider>
       </body>
     </html>

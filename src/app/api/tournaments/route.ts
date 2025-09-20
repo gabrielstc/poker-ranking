@@ -6,6 +6,16 @@ import { parseDateFromInput } from "@/lib/date-utils"
 
 export async function GET(request: NextRequest) {
     try {
+        // Verificar autenticação
+        const session = await getServerSession(authOptions)
+
+        if (!session) {
+            return NextResponse.json(
+                { error: "Não autorizado" },
+                { status: 401 }
+            )
+        }
+
         const { searchParams } = new URL(request.url)
         const month = searchParams.get('month')
         const year = searchParams.get('year')
@@ -24,8 +34,17 @@ export async function GET(request: NextRequest) {
             }
         }
 
+        // Filtrar por clube do usuário (se não for SUPER_ADMIN)
+        let clubFilter = {}
+        if (session.user.role !== 'SUPER_ADMIN' && session.user.clubId) {
+            clubFilter = { clubId: session.user.clubId }
+        }
+
         const tournaments = await prisma.tournament.findMany({
-            where: dateFilter,
+            where: {
+                ...dateFilter,
+                ...clubFilter
+            },
             orderBy: { date: 'desc' },
             include: {
                 participations: {
@@ -67,6 +86,14 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Verificar se o usuário tem um clube associado
+        if (session.user.role !== 'SUPER_ADMIN' && !session.user.clubId) {
+            return NextResponse.json(
+                { error: "Usuário não está associado a nenhum clube" },
+                { status: 403 }
+            )
+        }
+
         const tournament = await prisma.tournament.create({
             data: {
                 name,
@@ -75,6 +102,7 @@ export async function POST(request: NextRequest) {
                 description,
                 status: status || 'UPCOMING',
                 type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL') ? tipo : 'EXPONENCIAL',
+                clubId: session.user.clubId! // Garantido pelo check acima
             },
         })
 

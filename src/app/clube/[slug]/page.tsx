@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, use } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trophy, Medal, Award, Users, Calendar, Building2, ArrowLeft, ExternalLink } from "lucide-react"
 import { formatDateToBR } from "@/lib/date-utils"
 import { useRouter } from "next/navigation"
+import { useClub } from "@/contexts/ClubContext"
 import Link from "next/link"
 
 interface RankingPlayer {
@@ -46,7 +47,9 @@ interface RankingResponse {
   } | null
 }
 
-export default function ClubRankingPage({ params }: { params: { slug: string } }) {
+export default function ClubRankingPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
+  const { currentClub } = useClub()
   const [ranking, setRanking] = useState<RankingPlayer[]>([])
   const [clubInfo, setClubInfo] = useState<ClubInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -63,12 +66,31 @@ export default function ClubRankingPage({ params }: { params: { slug: string } }
     return `${year}-${month}-${day}`
   }
 
+  // Use club from context when available
+  useEffect(() => {
+    if (currentClub && currentClub.slug === slug) {
+      setClubInfo({
+        id: currentClub.id,
+        name: currentClub.name,
+        slug: currentClub.slug,
+        description: null,
+        logo: currentClub.logo,
+        _count: { players: 0, tournaments: 0 }
+      })
+    }
+  }, [currentClub, slug])
+
   const fetchClubInfo = useCallback(async () => {
+    if (currentClub && currentClub.slug === slug) {
+      // Club already loaded from context
+      return
+    }
+    
     try {
       const response = await fetch('/api/public/clubs')
       if (response.ok) {
         const clubs: ClubInfo[] = await response.json()
-        const club = clubs.find(c => c.slug === params.slug)
+        const club = clubs.find(c => c.slug === slug)
         if (club) {
           setClubInfo(club)
         } else {
@@ -79,7 +101,7 @@ export default function ClubRankingPage({ params }: { params: { slug: string } }
       console.error('Erro ao buscar informações do clube:', error)
       router.push('/')
     }
-  }, [params.slug, router])
+  }, [slug, router, currentClub])
 
   const fetchRanking = useCallback(async () => {
     if (!clubInfo) return
@@ -179,7 +201,7 @@ export default function ClubRankingPage({ params }: { params: { slug: string } }
           </div>
 
           <a 
-            href={`/clube/${params.slug}`} 
+            href={`/clube/${slug}`} 
             target="_blank" 
             rel="noopener noreferrer"
             className="inline-flex items-center"

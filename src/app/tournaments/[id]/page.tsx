@@ -9,6 +9,8 @@ import { ArrowLeft, Trophy, Medal, Award, Users, Calendar, DollarSign } from "lu
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { createLocalDate } from "@/lib/date-utils"
+import { useClub } from "@/contexts/ClubContext"
+import { SupremaPropaganda } from "@/components/suprema-propaganda"
 import Link from "next/link"
 
 interface Player {
@@ -37,6 +39,7 @@ interface Tournament {
 }
 
 export default function TournamentDetailsPage() {
+    const { currentClub } = useClub()
     const params = useParams()
     const router = useRouter()
     const tournamentId = params.id as string
@@ -156,6 +159,15 @@ export default function TournamentDetailsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Propaganda da Suprema */}
+            {currentClub?.supremaId && (
+                <SupremaPropaganda 
+                    supremaId={currentClub.supremaId}
+                    clubName={currentClub.name}
+                    variant="compact"
+                />
+            )}
 
             {/* Informações do Torneio */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

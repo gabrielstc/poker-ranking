@@ -12,6 +12,7 @@ import { Plus, Users, Trophy, Target, Edit, Trash2, UserPlus, Power, PowerOff, S
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import ImageUpload from "@/components/ui/image-upload"
 
 interface Club {
     id: string
@@ -273,12 +274,11 @@ export default function SuperAdminPage() {
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="logo">URL do Logo</Label>
-                                <Input
-                                    id="logo"
+                                <ImageUpload
+                                    label="Logo do Clube"
                                     value={formData.logo}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, logo: e.target.value }))}
-                                    placeholder="URL do logo (opcional)"
+                                    onChange={(dataUrl) => setFormData(prev => ({ ...prev, logo: dataUrl || "" }))}
+                                    placeholder="Clique para selecionar a logo ou arraste aqui"
                                 />
                             </div>
                             <div className="flex justify-end space-x-2">
@@ -320,13 +320,25 @@ export default function SuperAdminPage() {
                     <Card key={club.id} className="hover:shadow-lg transition-shadow">
                         <CardHeader>
                             <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-lg">{club.name}</CardTitle>
-                                    {club.description && (
-                                        <CardDescription className="mt-1">
-                                            {club.description}
-                                        </CardDescription>
+                                <div className="flex items-start space-x-3">
+                                    {club.logo && (
+                                        <div className="flex-shrink-0">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={club.logo}
+                                                alt={`Logo do ${club.name}`}
+                                                className="w-12 h-12 rounded-lg object-contain bg-gray-50 border"
+                                            />
+                                        </div>
                                     )}
+                                    <div>
+                                        <CardTitle className="text-lg">{club.name}</CardTitle>
+                                        {club.description && (
+                                            <CardDescription className="mt-1">
+                                                {club.description}
+                                            </CardDescription>
+                                        )}
+                                    </div>
                                 </div>
                                 <Badge variant={club.isActive ? "default" : "secondary"}>
                                     {club.isActive ? "Ativo" : "Inativo"}
@@ -463,12 +475,11 @@ export default function SuperAdminPage() {
                             />
                         </div>
                         <div>
-                            <Label htmlFor="edit-logo">URL do Logo</Label>
-                            <Input
-                                id="edit-logo"
+                            <ImageUpload
+                                label="Logo do Clube"
                                 value={formData.logo}
-                                onChange={(e) => setFormData(prev => ({ ...prev, logo: e.target.value }))}
-                                placeholder="URL do logo (opcional)"
+                                onChange={(dataUrl) => setFormData(prev => ({ ...prev, logo: dataUrl || "" }))}
+                                placeholder="Clique para selecionar a logo ou arraste aqui"
                             />
                         </div>
                         <div className="flex justify-end space-x-2">

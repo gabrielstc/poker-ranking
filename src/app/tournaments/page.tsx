@@ -9,6 +9,8 @@ import { Calendar, Trophy, Users, DollarSign, Eye } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { createLocalDate } from "@/lib/date-utils"
+import { useClub } from "@/contexts/ClubContext"
+import { SupremaPropaganda } from "@/components/suprema-propaganda"
 import Link from "next/link"
 
 interface Tournament {
@@ -31,6 +33,7 @@ interface Tournament {
 }
 
 export default function TournamentsPage() {
+    const { currentClub } = useClub()
     const [tournaments, setTournaments] = useState<Tournament[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedMonth, setSelectedMonth] = useState<string>("")
@@ -149,6 +152,15 @@ export default function TournamentsPage() {
                     Explore os torneios realizados e veja os resultados detalhados
                 </p>
             </div>
+
+            {/* Propaganda da Suprema */}
+            {currentClub?.supremaId && (
+                <SupremaPropaganda 
+                    supremaId={currentClub.supremaId}
+                    clubName={currentClub.name}
+                    variant="banner"
+                />
+            )}
 
             {/* Filtros */}
             <Card>

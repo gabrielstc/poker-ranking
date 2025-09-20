@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -34,7 +34,8 @@ interface Club {
     isActive: boolean
 }
 
-export default function ClubUsersPage({ params }: { params: { id: string } }) {
+export default function ClubUsersPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params)
     const [users, setUsers] = useState<ClubUser[]>([])
     const [club, setClub] = useState<Club | null>(null)
     const [loading, setLoading] = useState(true)
@@ -57,7 +58,7 @@ export default function ClubUsersPage({ params }: { params: { id: string } }) {
     useEffect(() => {
         const fetchClub = async () => {
             try {
-                const response = await fetch(`/api/clubs/${params.id}`)
+                const response = await fetch(`/api/clubs/${id}`)
                 if (response.ok) {
                     const data = await response.json()
                     setClub(data)
@@ -73,7 +74,7 @@ export default function ClubUsersPage({ params }: { params: { id: string } }) {
 
         const fetchUsers = async () => {
             try {
-                const response = await fetch(`/api/clubs/${params.id}/users`)
+                const response = await fetch(`/api/clubs/${id}/users`)
                 if (response.ok) {
                     const data = await response.json()
                     setUsers(data)
@@ -107,11 +108,11 @@ export default function ClubUsersPage({ params }: { params: { id: string } }) {
         }
 
         initPage()
-    }, [session, status, router, params.id])
+    }, [session, status, router, id])
 
     const fetchUsersRefresh = async () => {
         try {
-            const response = await fetch(`/api/clubs/${params.id}/users`)
+            const response = await fetch(`/api/clubs/${id}/users`)
             if (response.ok) {
                 const data = await response.json()
                 setUsers(data)
@@ -128,7 +129,7 @@ export default function ClubUsersPage({ params }: { params: { id: string } }) {
         e.preventDefault()
         
         try {
-            const response = await fetch(`/api/clubs/${params.id}/users`, {
+            const response = await fetch(`/api/clubs/${id}/users`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -164,7 +165,7 @@ export default function ClubUsersPage({ params }: { params: { id: string } }) {
                 ...(formData.password && { password: formData.password })
             }
 
-            const response = await fetch(`/api/clubs/${params.id}/users/${selectedUser.id}`, {
+            const response = await fetch(`/api/clubs/${id}/users/${selectedUser.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -190,7 +191,7 @@ export default function ClubUsersPage({ params }: { params: { id: string } }) {
 
     const handleDeleteUser = async (user: ClubUser) => {
         try {
-            const response = await fetch(`/api/clubs/${params.id}/users/${user.id}`, {
+            const response = await fetch(`/api/clubs/${id}/users/${user.id}`, {
                 method: 'DELETE',
             })
 

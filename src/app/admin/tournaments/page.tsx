@@ -16,6 +16,8 @@ import { toast } from "sonner"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { formatDateForInput, createLocalDate } from "@/lib/date-utils"
+import { useClub } from "@/contexts/ClubContext"
+import { SupremaPropaganda } from "@/components/suprema-propaganda"
 import Link from "next/link"
 
 interface Tournament {
@@ -39,6 +41,7 @@ interface Tournament {
 }
 
 export default function TournamentsPage() {
+    const { currentClub } = useClub()
     const { data: session, status } = useSession()
     const router = useRouter()
     const [tournaments, setTournaments] = useState<Tournament[]>([])
@@ -201,7 +204,12 @@ export default function TournamentsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold">Gerenciar Torneios</h1>
-                    <p className="text-muted-foreground">Crie e gerencie torneios de poker</p>
+                    <p className="text-muted-foreground">
+                        {session.user.role === 'CLUB_ADMIN' && session.user.clubName 
+                            ? `Crie e gerencie torneios do ${session.user.clubName}`
+                            : 'Crie e gerencie torneios de poker'
+                        }
+                    </p>
                 </div>
 
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -302,6 +310,15 @@ export default function TournamentsPage() {
                     </DialogContent>
                 </Dialog>
             </div>
+
+            {/* Propaganda da Suprema */}
+            {currentClub?.supremaId && (
+                <SupremaPropaganda 
+                    supremaId={currentClub.supremaId}
+                    clubName={currentClub.name}
+                    variant="default"
+                />
+            )}
 
             <Card>
                 <CardHeader>

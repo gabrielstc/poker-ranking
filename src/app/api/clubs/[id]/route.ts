@@ -63,7 +63,7 @@ export async function PUT(
     try {
         await requireSuperAdmin()
 
-        const { name, description, logo, isActive } = await request.json()
+        const { name, description, logo, supremaId, isActive } = await request.json()
 
         // Validação
         if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -76,6 +76,7 @@ export async function PUT(
         const sanitizedName = name.trim()
         const sanitizedDescription = description?.trim() || null
         const sanitizedLogo = logo?.trim() || null
+        const sanitizedSupremaId = supremaId?.trim() || null
 
         // Verificar se já existe outro clube com esse nome
         const existingClub = await prisma.club.findFirst({
@@ -98,6 +99,7 @@ export async function PUT(
                 name: sanitizedName,
                 description: sanitizedDescription,
                 logo: sanitizedLogo,
+                supremaId: sanitizedSupremaId,
                 isActive: isActive !== undefined ? Boolean(isActive) : undefined,
             }
         })

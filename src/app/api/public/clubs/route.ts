@@ -13,6 +13,7 @@ export async function GET() {
                 slug: true,
                 description: true,
                 logo: true,
+                supremaId: true,
                 _count: {
                     select: {
                         players: true,

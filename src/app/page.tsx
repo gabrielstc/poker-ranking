@@ -47,7 +47,7 @@ interface RankingResponse {
 export default function HomePage() {
   const [ranking, setRanking] = useState<RankingPlayer[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
-  const [selectedClub, setSelectedClub] = useState<string>("")
+  const [selectedClub, setSelectedClub] = useState<string>("all")
   const [currentClub, setCurrentClub] = useState<{ id: string; name: string; slug: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [fromDate, setFromDate] = useState<string>("")
@@ -69,7 +69,7 @@ export default function HomePage() {
         params.append('from', fromDate)
         params.append('to', toDate)
       }
-      if (selectedClub) {
+      if (selectedClub && selectedClub !== "all") {
         params.append('clubId', selectedClub)
       }
 
@@ -163,7 +163,7 @@ export default function HomePage() {
                   <SelectValue placeholder="Selecione um clube" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os clubes</SelectItem>
+                  <SelectItem value="all">Todos os clubes</SelectItem>
                   {clubs.map((club) => (
                     <SelectItem key={club.id} value={club.id}>
                       <div className="flex items-center space-x-2">
@@ -236,9 +236,9 @@ export default function HomePage() {
             <div className="text-center py-8">
               <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                {selectedClub ? "Nenhum dado encontrado para este clube no período selecionado" : "Nenhum dado encontrado para este período"}
+                {selectedClub && selectedClub !== "all" ? "Nenhum dado encontrado para este clube no período selecionado" : "Nenhum dado encontrado para este período"}
               </p>
-              {!selectedClub && (
+              {(!selectedClub || selectedClub === "all") && (
                 <p className="text-sm text-muted-foreground mt-2">
                   Selecione um clube para ver o ranking específico
                 </p>

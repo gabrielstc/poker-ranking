@@ -17,6 +17,7 @@ model Club {
   slug        String   @unique
   description String?
   logo        String?
+  supremaId   String?  // ID do clube na Suprema (usado para propaganda)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

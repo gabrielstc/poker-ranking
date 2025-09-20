@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -47,7 +47,8 @@ interface ClubDetails {
     }>
 }
 
-export default function ClubDetailsPage({ params }: { params: { id: string } }) {
+export default function ClubDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params)
     const [club, setClub] = useState<ClubDetails | null>(null)
     const [loading, setLoading] = useState(true)
     
@@ -57,7 +58,7 @@ export default function ClubDetailsPage({ params }: { params: { id: string } }) 
     useEffect(() => {
         const fetchClubDetails = async () => {
             try {
-                const response = await fetch(`/api/clubs/${params.id}`)
+                const response = await fetch(`/api/clubs/${id}`)
                 if (response.ok) {
                     const data = await response.json()
                     setClub(data)
@@ -91,7 +92,7 @@ export default function ClubDetailsPage({ params }: { params: { id: string } }) 
         }
 
         initPage()
-    }, [session, status, router, params.id])
+    }, [session, status, router, id])
 
     if (status === 'loading' || loading) {
         return (
