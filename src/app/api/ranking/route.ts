@@ -7,8 +7,11 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const fromDate = searchParams.get('from')
         const toDate = searchParams.get('to')
+        const clubId = searchParams.get('clubId')
+        const clubSlug = searchParams.get('clubSlug')
 
         let dateFilter = {}
+        let clubFilter = {}
 
         if (fromDate && toDate) {
             const startDate = parseDateFromInput(fromDate)
@@ -23,15 +26,50 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Buscar todas as participações com filtro de data se fornecido
+        // Filtro por clube via ID ou slug
+        if (clubId || clubSlug) {
+            if (clubSlug) {
+                // Buscar clube pelo slug primeiro
+                const club = await prisma.club.findUnique({
+                    where: { slug: clubSlug },
+                    select: { id: true }
+                })
+                
+                if (!club) {
+                    return NextResponse.json(
+                        { error: "Clube não encontrado" },
+                        { status: 404 }
+                    )
+                }
+                
+                clubFilter = { clubId: club.id }
+            } else {
+                clubFilter = { clubId }
+            }
+        }
+
+        // Buscar todas as participações com filtro de data e clube
         const participations = await prisma.tournamentParticipation.findMany({
             where: {
-                tournament: dateFilter,
+                tournament: {
+                    ...dateFilter,
+                    ...clubFilter,
+                },
                 points: { not: null }
             },
             include: {
                 player: true,
-                tournament: true
+                tournament: {
+                    include: {
+                        club: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true
+                            }
+                        }
+                    }
+                }
             }
         })
 
@@ -76,7 +114,19 @@ export async function GET(request: NextRequest) {
                     : null
             }))
 
-        return NextResponse.json(ranking)
+        // Incluir informações do clube se disponível
+        const response = {
+            ranking,
+            club: participations.length > 0 && participations[0].tournament.club 
+                ? {
+                    id: participations[0].tournament.club.id,
+                    name: participations[0].tournament.club.name,
+                    slug: participations[0].tournament.club.slug
+                } 
+                : null
+        }
+
+        return NextResponse.json(response)
     } catch (error) {
         console.error("Erro ao buscar ranking:", error)
         return NextResponse.json(

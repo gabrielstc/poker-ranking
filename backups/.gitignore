@@ -1,0 +1,7 @@
+# Ignorar todos os arquivos de backup (contêm dados sensíveis)
+*.json
+*.sql
+*.dump
+
+# Permitir apenas este arquivo README
+!README.md

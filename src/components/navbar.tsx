@@ -69,6 +69,18 @@ export function Navbar() {
 
                             {session && (
                                 <>
+                                    {/* Links para Super Admin */}
+                                    {session.user.role === 'SUPER_ADMIN' && (
+                                        <Link
+                                            href="/super-admin"
+                                            className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                        >
+                                            <User className="h-4 w-4" />
+                                            <span>Gerenciar Clubes</span>
+                                        </Link>
+                                    )}
+
+                                    {/* Links para Club Admin */}
                                     <Link
                                         href="/admin/tournaments"
                                         className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
@@ -85,13 +97,16 @@ export function Navbar() {
                                         <span>Jogadores</span>
                                     </Link>
 
-                                    <Link
-                                        href="/admin/users"
-                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
-                                    >
-                                        <User className="h-4 w-4" />
-                                        <span>Usuários</span>
-                                    </Link>
+                                    {/* Usuários apenas para Club Admin */}
+                                    {session.user.role === 'CLUB_ADMIN' && (
+                                        <Link
+                                            href="/admin/users"
+                                            className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                        >
+                                            <User className="h-4 w-4" />
+                                            <span>Usuários</span>
+                                        </Link>
+                                    )}
                                 </>
                             )}
                         </div>

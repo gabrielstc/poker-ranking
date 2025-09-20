@@ -11,13 +11,36 @@ datasource db {
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
+model Club {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  logo        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  users          User[]
+  players        Player[]
+  tournaments    Tournament[]
+
+  @@map("clubs")
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
   password  String
+  role      UserRole @default(CLUB_ADMIN)
+  clubId    String?  // null para super-admin
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Relacionamento com clube (opcional para super-admin)
+  club Club? @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }
@@ -25,15 +48,18 @@ model User {
 model Player {
   id        String   @id @default(cuid())
   name      String
-  nickname  String   @unique
+  nickname  String   
   email     String?
   phone     String?
+  clubId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relacionamento com participações em torneios
+  // Relacionamentos
+  club           Club                      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   participations TournamentParticipation[]
 
+  @@unique([nickname, clubId]) // nickname único por clube
   @@map("players")
 }
 
@@ -45,10 +71,12 @@ model Tournament {
   description String?
   status      TournamentStatus @default(UPCOMING)
   type        TournamentType   @default(EXPONENCIAL)
+  clubId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relacionamento com participações
+  // Relacionamentos
+  club           Club                      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   participations TournamentParticipation[]
 
   @@map("tournaments")
@@ -82,4 +110,9 @@ enum TournamentStatus {
 enum TournamentType {
   FIXO
   EXPONENCIAL
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  CLUB_ADMIN
 }
