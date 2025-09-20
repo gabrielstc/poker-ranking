@@ -1,0 +1,353 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ArrowLeft, Trophy, Medal, Award, Users, Calendar, DollarSign } from "lucide-react"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { createLocalDate } from "@/lib/date-utils"
+import { useClub } from "@/contexts/ClubContext"
+import { SupremaPropaganda } from "@/components/suprema-propaganda"
+import Link from "next/link"
+
+interface Player {
+    id: string
+    name: string
+    nickname: string
+}
+
+interface Participation {
+    id: string
+    playerId: string
+    position: number | null
+    points: number | null
+    prize: number | null
+    player: Player
+}
+
+interface Tournament {
+    id: string
+    name: string
+    date: string
+    buyIn: number | null
+    description: string | null
+    status: string
+    participations: Participation[]
+}
+
+export default function ClubTournamentDetailsPage() {
+    const { currentClub } = useClub()
+    const params = useParams()
+    const router = useRouter()
+    const clubSlug = params.slug as string
+    const tournamentId = params.id as string
+
+    const [tournament, setTournament] = useState<Tournament | null>(null)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        if (!tournamentId) return
+
+        const fetchTournamentDetails = async () => {
+            try {
+                setLoading(true)
+                const response = await fetch(`/api/tournaments/${tournamentId}`)
+                if (response.ok) {
+                    const data = await response.json()
+                    setTournament(data)
+                } else {
+                    router.push(`/clube/${clubSlug}/tournaments`)
+                }
+            } catch (error) {
+                console.error("Erro ao buscar torneio:", error)
+                router.push(`/clube/${clubSlug}/tournaments`)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchTournamentDetails()
+    }, [tournamentId, router, clubSlug])
+
+    const getPositionIcon = (position: number | null) => {
+        if (!position) return <span className="text-gray-400">-</span>
+
+        switch (position) {
+            case 1:
+                return <Trophy className="h-5 w-5 text-yellow-500" />
+            case 2:
+                return <Medal className="h-5 w-5 text-gray-400" />
+            case 3:
+                return <Award className="h-5 w-5 text-amber-600" />
+            default:
+                return <span className="font-bold text-gray-600">{position}º</span>
+        }
+    }
+
+    const getStatusBadge = (status: string) => {
+        const badges = {
+            UPCOMING: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+            IN_PROGRESS: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+            COMPLETED: "bg-green-500/20 text-green-300 border border-green-500/30",
+            CANCELLED: "bg-red-500/20 text-red-300 border border-red-500/30"
+        }
+
+        const labels = {
+            UPCOMING: "Próximo",
+            IN_PROGRESS: "Em Andamento", 
+            COMPLETED: "Finalizado",
+            CANCELLED: "Cancelado"
+        }
+
+        return (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[status as keyof typeof badges]}`}>
+                {labels[status as keyof typeof labels]}
+            </span>
+        )
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        )
+    }
+
+    if (!tournament) {
+        return null
+    }
+
+    const sortedParticipations = [...tournament.participations].sort((a, b) => {
+        if (a.position && b.position) return a.position - b.position
+        if (a.position && !b.position) return -1
+        if (!a.position && b.position) return 1
+        return 0
+    })
+
+    const totalPrizePool = tournament.participations.reduce((sum, p) => sum + (p.prize || 0), 0)
+    const playersWithPositions = tournament.participations.filter(p => p.position !== null).length
+
+    return (
+        <div className="space-y-6 sm:space-y-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center space-x-4">
+                    <Link href={`/clube/${clubSlug}/tournaments`}>
+                        <Button variant="outline" size="sm">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Voltar aos Torneios
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{tournament.name}</h1>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
+                            <div className="flex items-center space-x-1 text-muted-foreground">
+                                <Calendar className="h-4 w-4" />
+                                <span>{format(createLocalDate(tournament.date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                            </div>
+                            {tournament.buyIn && (
+                                <div className="flex items-center space-x-1 text-muted-foreground">
+                                    <DollarSign className="h-4 w-4" />
+                                    <span>R$ {tournament.buyIn.toFixed(2)}</span>
+                                </div>
+                            )}
+                            {getStatusBadge(tournament.status)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Propaganda da Suprema */}
+            {currentClub?.supremaId && (
+                <SupremaPropaganda 
+                    supremaId={currentClub.supremaId}
+                    clubName={currentClub.name}
+                    variant="banner"
+                />
+            )}
+
+            {/* Informações do Torneio */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center space-x-2">
+                            <Users className="h-5 w-5 text-blue-500" />
+                            <div>
+                                <p className="text-2xl font-bold">{tournament.participations.length}</p>
+                                <p className="text-sm text-muted-foreground">Participantes</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex items-center space-x-2">
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                            <div>
+                                <p className="text-2xl font-bold">{playersWithPositions}</p>
+                                <p className="text-sm text-muted-foreground">Classificados</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="sm:col-span-2 lg:col-span-1">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center space-x-2">
+                            <DollarSign className="h-5 w-5 text-green-500" />
+                            <div>
+                                <p className="text-2xl font-bold">R$ {totalPrizePool.toFixed(2)}</p>
+                                <p className="text-sm text-muted-foreground">Premiação Total</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Descrição */}
+            {tournament.description && (
+                <Card>
+                    <CardContent className="pt-6">
+                        <p className="text-muted-foreground">{tournament.description}</p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Pódio */}
+            {sortedParticipations.some(p => p.position && p.position <= 3) && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center space-x-2">
+                            <Trophy className="h-5 w-5" />
+                            <span>Pódio</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[1, 2, 3].map((position) => {
+                                const participant = sortedParticipations.find(p => p.position === position)
+                                if (!participant) return null
+
+                                const colors = {
+                                    1: "border-yellow-300 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-700",
+                                    2: "border-gray-300 bg-gray-50 dark:bg-gray-950/20 dark:border-gray-700", 
+                                    3: "border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700"
+                                }
+
+                                return (
+                                    <Card key={position} className={`border-2 ${colors[position as keyof typeof colors]}`}>
+                                        <CardContent className="pt-6 text-center">
+                                            <div className="flex justify-center mb-2">
+                                                {getPositionIcon(position)}
+                                            </div>
+                                            <h3 className="font-semibold text-lg">{participant.player.name}</h3>
+                                            <p className="text-sm text-muted-foreground">@{participant.player.nickname}</p>
+                                            {participant.points && (
+                                                <p className="text-sm font-medium mt-1">{participant.points.toFixed(1)} pontos</p>
+                                            )}
+                                            {participant.prize && (
+                                                <p className="text-sm font-medium text-green-600 dark:text-green-400">R$ {participant.prize.toFixed(2)}</p>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                )
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Resultados Completos */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                        <Users className="h-5 w-5" />
+                        <span>Resultados Completos</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {tournament.participations.length === 0 ? (
+                        <div className="text-center py-8">
+                            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground">Nenhum participante registrado</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {/* Cards para mobile */}
+                            <div className="block md:hidden space-y-3">
+                                {sortedParticipations.map((participation) => (
+                                    <Card key={participation.id} className="border border-border">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="flex-shrink-0">
+                                                        {getPositionIcon(participation.position)}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-medium">{participation.player.name}</h4>
+                                                        <p className="text-sm text-muted-foreground">@{participation.player.nickname}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    {participation.points && (
+                                                        <p className="font-bold text-blue-600 dark:text-blue-400">{participation.points.toFixed(1)} pts</p>
+                                                    )}
+                                                    {participation.prize && (
+                                                        <p className="text-sm text-green-600 dark:text-green-400">R$ {participation.prize.toFixed(2)}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+
+                            {/* Tabela para desktop */}
+                            <div className="hidden md:block">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-16">Pos.</TableHead>
+                                            <TableHead>Jogador</TableHead>
+                                            <TableHead className="text-center">Pontos</TableHead>
+                                            <TableHead className="text-center">Prêmio</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {sortedParticipations.map((participation) => (
+                                            <TableRow 
+                                                key={participation.id} 
+                                                className={participation.position && participation.position <= 3 ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}
+                                            >
+                                                <TableCell className="flex items-center justify-center">
+                                                    {getPositionIcon(participation.position)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div>
+                                                        <div className="font-medium">{participation.player.name}</div>
+                                                        <div className="text-sm text-muted-foreground">@{participation.player.nickname}</div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-center font-bold">
+                                                    {participation.points ? participation.points.toFixed(1) : "-"}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {participation.prize ? `R$ ${participation.prize.toFixed(2)}` : "-"}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    )
+}

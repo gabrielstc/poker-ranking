@@ -34,98 +34,75 @@ export function Navbar() {
                                     className="h-24 w-24 object-contain"
                                 />
                             ) : (
-                                <Image 
-                                    src="/suprema-five-serie.png" 
-                                    alt="Default logo" 
-                                    width={96} 
-                                    height={96} 
-                                    className="h-24 w-24"
-                                />
+                                <></>
                             )}
                             <span className="font-bold text-lg lg:text-xl text-foreground">
-                                {currentClub?.name || "Suprema Five Series"}
+                                {currentClub?.name || "Ranking Torneios de Poker"}
                             </span>
                         </Link>
 
                         {/* Desktop Navigation */}
-                        <div className="hidden lg:flex items-center space-x-6">
-                            <Link
-                                href="/"
-                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
-                            >
-                                Ranking
-                            </Link>
-
-                             <Link
-                                href="/tournaments"
-                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
-                            >
-                                Torneios
-                            </Link>
-
-                            <Link
-                                href="/points-system"
-                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
-                            >
-                                Sistema de Pontos
-                            </Link>
-
-                            {(!currentClub || currentClub.name?.toLowerCase().includes('five') || currentClub.name?.toLowerCase().includes('suprema')) && (
-                                <a
-                                    href="/REGULAMENTO RANKING 2025 SUPREMA FIVE SERIES.pdf"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                        {currentClub && (
+                            <div className="hidden lg:flex items-center space-x-6">
+                                <Link
+                                    href={`/clube/${currentClub.slug}`}
                                     className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
                                 >
-                                    Regulamento
-                                </a>
-                            )}
+                                    Ranking
+                                </Link>
 
-                           
+                                 <Link
+                                    href={`/clube/${currentClub.slug}/tournaments`}
+                                    className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
+                                >
+                                    Torneios
+                                </Link>
 
-                            {session && (
-                                <>
-                                    {/* Links para Super Admin */}
-                                    {session.user.role === 'SUPER_ADMIN' && (
+                                <Link
+                                    href="/points-system"
+                                    className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
+                                >
+                                    Sistema de Pontos
+                                </Link>
+
+                                {(currentClub.name?.toLowerCase().includes('five') || currentClub.name?.toLowerCase().includes('suprema')) && (
+                                    <a
+                                        href="/REGULAMENTO RANKING 2025 SUPREMA FIVE SERIES.pdf"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium"
+                                    >
+                                        Regulamento
+                                    </a>
+                                )}
+
+                               
+
+                                {session && (session.user.role === 'SUPER_ADMIN' || session.user.role === 'CLUB_ADMIN') && (
+                                    <>
+                                        {/* Links para Super Admin */}
+                                        {session.user.role === 'SUPER_ADMIN' && (
+                                            <Link
+                                                href="/super-admin"
+                                                className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
+                                            >
+                                                <User className="h-4 w-4" />
+                                                <span>Gerenciar Clubes</span>
+                                            </Link>
+                                        )}
+
+                                        {/* Links para Administração do Clube */}
                                         <Link
-                                            href="/super-admin"
+                                            href={`/clube/${currentClub.slug}/admin/tournaments`}
                                             className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
                                         >
-                                            <User className="h-4 w-4" />
-                                            <span>Gerenciar Clubes</span>
+                                            <Calendar className="h-4 w-4" />
+                                            <span>Admin</span>
                                         </Link>
-                                    )}
-
-                                    {/* Links para Club Admin */}
-                                    <Link
-                                        href="/admin/tournaments"
-                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
-                                    >
-                                        <Calendar className="h-4 w-4" />
-                                        <span>Torneios</span>
-                                    </Link>
-
-                                    <Link
-                                        href="/admin/players"
-                                        className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
-                                    >
-                                        <Users className="h-4 w-4" />
-                                        <span>Jogadores</span>
-                                    </Link>
-
-                                    {/* Usuários apenas para Club Admin */}
-                                    {session.user.role === 'CLUB_ADMIN' && (
-                                        <Link
-                                            href="/admin/users"
-                                            className="text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium flex items-center space-x-1"
-                                        >
-                                            <User className="h-4 w-4" />
-                                            <span>Usuários</span>
-                                        </Link>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Desktop User Menu */}
@@ -162,30 +139,32 @@ export function Navbar() {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="lg:hidden">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                    </div>
+                    {currentClub && (
+                        <div className="lg:hidden">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            >
+                                <Menu className="h-5 w-5" />
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Mobile Navigation Menu */}
-                {isMenuOpen && (
+                {isMenuOpen && currentClub && (
                     <div className="lg:hidden border-t bg-background">
                         <div className="px-2 pt-2 pb-3 space-y-1">
                             <Link
-                                href="/"
+                                href={`/clube/${currentClub.slug}`}
                                 className="block px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 Ranking
                             </Link>
                             <Link
-                                href="/tournaments"
+                                href={`/clube/${currentClub.slug}/tournaments`}
                                 className="block px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium"
                                 onClick={() => setIsMenuOpen(false)}
                             >
@@ -198,7 +177,7 @@ export function Navbar() {
                             >
                                 Sistema de Pontos
                             </Link>
-                            {(!currentClub || currentClub.name?.toLowerCase().includes('five') || currentClub.name?.toLowerCase().includes('suprema')) && (
+                            {(currentClub.name?.toLowerCase().includes('five') || currentClub.name?.toLowerCase().includes('suprema')) && (
                                 <a
                                     href="/REGULAMENTO RANKING 2025 SUPREMA FIVE SERIES.pdf"
                                     target="_blank"
@@ -210,26 +189,41 @@ export function Navbar() {
                                 </a>
                             )}
 
-                            {session && (
+                            {session && (session.user.role === 'SUPER_ADMIN' || session.user.role === 'CLUB_ADMIN') && (
                                 <>
+                                    {/* Links para Super Admin */}
+                                    {session.user.role === 'SUPER_ADMIN' && (
+                                        <Link
+                                            href="/super-admin"
+                                            className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            <User className="h-4 w-4" />
+                                            <span>Gerenciar Clubes</span>
+                                        </Link>
+                                    )}
+
+                                    {/* Links para Administração do Clube */}
                                     <Link
-                                        href="/admin/tournaments"
+                                        href={`/clube/${currentClub.slug}/admin/tournaments`}
                                         className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         <Calendar className="h-4 w-4" />
-                                        <span>Torneios Admin</span>
+                                        <span>Admin Torneios</span>
                                     </Link>
+
                                     <Link
-                                        href="/admin/players"
+                                        href={`/clube/${currentClub.slug}/admin/players`}
                                         className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         <Users className="h-4 w-4" />
                                         <span>Jogadores</span>
                                     </Link>
+
                                     <Link
-                                        href="/admin/users"
+                                        href={`/clube/${currentClub.slug}/admin/users`}
                                         className="flex px-3 py-2 text-muted-foreground hover:text-foreground text-sm font-medium items-center space-x-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >

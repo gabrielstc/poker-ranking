@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireSuperAdmin } from "@/lib/permissions"
+import { requireClubAdmin } from "@/lib/permissions"
 import bcrypt from "bcryptjs"
 
 export async function PUT(
@@ -8,7 +8,7 @@ export async function PUT(
     { params }: { params: { id: string; userId: string } }
 ) {
     try {
-        await requireSuperAdmin()
+        await requireClubAdmin(params.id)
 
         const { name, email, password, role } = await request.json()
 
@@ -34,7 +34,7 @@ export async function PUT(
             )
         }
 
-        if (role && !['CLUB_ADMIN', 'SUPER_ADMIN'].includes(role)) {
+        if (role && !['CLUB_ADMIN'].includes(role)) {
             return NextResponse.json(
                 { error: "Role inválido" },
                 { status: 400 }
@@ -74,7 +74,7 @@ export async function PUT(
         const updateData: {
             name?: string
             email?: string
-            role?: 'CLUB_ADMIN' | 'SUPER_ADMIN'
+            role?: 'CLUB_ADMIN'
             clubId?: string | null
             password?: string
         } = {}
@@ -82,8 +82,8 @@ export async function PUT(
         if (name) updateData.name = name.trim()
         if (email) updateData.email = email.trim().toLowerCase()
         if (role) {
-            updateData.role = role as 'CLUB_ADMIN' | 'SUPER_ADMIN'
-            updateData.clubId = role === 'CLUB_ADMIN' ? params.id : null
+            updateData.role = role as 'CLUB_ADMIN'
+            updateData.clubId = params.id
         }
         if (password) {
             updateData.password = await bcrypt.hash(password, 12)
@@ -132,7 +132,7 @@ export async function DELETE(
     { params }: { params: { id: string; userId: string } }
 ) {
     try {
-        await requireSuperAdmin()
+        await requireClubAdmin(params.id)
 
         // Verificar se o usuário existe
         const user = await prisma.user.findUnique({
@@ -154,6 +154,26 @@ export async function DELETE(
             )
         }
 
+        // Para administradores de clube, remover associação com o clube ao invés de excluir
+        if (user.role === 'CLUB_ADMIN' && user.clubId === params.id) {
+            await prisma.user.update({
+                where: { id: params.userId },
+                data: {
+                    clubId: null
+                }
+            })
+            return NextResponse.json({ message: "Usuário removido do clube com sucesso" })
+        }
+
+        // Se não é do clube atual, não pode excluir
+        if (user.clubId !== params.id) {
+            return NextResponse.json(
+                { error: "Usuário não pertence a este clube" },
+                { status: 400 }
+            )
+        }
+
+        // Para outros casos, excluir completamente
         await prisma.user.delete({
             where: { id: params.userId }
         })

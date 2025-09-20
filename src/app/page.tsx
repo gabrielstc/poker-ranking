@@ -1,27 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Trophy, Medal, Award, Users, Calendar, Building2 } from "lucide-react"
-import { formatDateToBR } from "@/lib/date-utils"
-
-interface RankingPlayer {
-  position: number
-  player: {
-    id: string
-    name: string
-    nickname: string
-  }
-  totalPoints: number
-  tournaments: number
-  wins: number
-  averagePosition: number | null
-}
+import { Building2, Users, Trophy, ExternalLink } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useClub } from "@/contexts/ClubContext"
+import Image from "next/image"
 
 interface Club {
   id: string
@@ -29,65 +13,26 @@ interface Club {
   slug: string
   description: string | null
   logo: string | null
+  supremaId: string | null
   _count: {
     players: number
     tournaments: number
   }
 }
 
-interface RankingResponse {
-  ranking: RankingPlayer[]
-  club: {
-    id: string
-    name: string
-    slug: string
-  } | null
-}
-
 export default function HomePage() {
-  const [ranking, setRanking] = useState<RankingPlayer[]>([])
   const [clubs, setClubs] = useState<Club[]>([])
-  const [selectedClub, setSelectedClub] = useState<string>("all")
-  const [currentClub, setCurrentClub] = useState<{ id: string; name: string; slug: string } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [fromDate, setFromDate] = useState<string>("")
-  const [toDate, setToDate] = useState<string>("")
-  
-  // Converter para formato YYYY-MM-DD no timezone local
-  const formatDateToLocal = (date: Date) => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
+  const router = useRouter()
+  const { setCurrentClub } = useClub()
 
-  const fetchRanking = useCallback(async () => {
+  useEffect(() => {
+    fetchClubs()
+  }, [])
+
+  const fetchClubs = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (fromDate && toDate) {
-        params.append('from', fromDate)
-        params.append('to', toDate)
-      }
-      if (selectedClub && selectedClub !== "all") {
-        params.append('clubId', selectedClub)
-      }
-
-      const response = await fetch(`/api/ranking?${params}`)
-      if (response.ok) {
-        const data: RankingResponse = await response.json()
-        setRanking(data.ranking)
-        setCurrentClub(data.club)
-      }
-    } catch (error) {
-      console.error('Erro ao buscar ranking:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [fromDate, toDate, selectedClub])
-
-  const fetchClubs = useCallback(async () => {
-    try {
       const response = await fetch('/api/public/clubs')
       if (response.ok) {
         const data: Club[] = await response.json()
@@ -95,39 +40,23 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('Erro ao buscar clubes:', error)
+    } finally {
+      setLoading(false)
     }
-  }, [])
+  }
 
-  useEffect(() => {
-    // Carregar clubes na inicialização
-    fetchClubs()
+  const handleClubClick = (club: Club) => {
+    // Definir o contexto do clube
+    setCurrentClub({
+      id: club.id,
+      name: club.name,
+      slug: club.slug,
+      logo: club.logo,
+      supremaId: club.supremaId
+    })
     
-    // Calcular as datas diretamente no useEffect para evitar dependências desnecessárias
-    const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    
-    setFromDate(formatDateToLocal(monthStart))
-    setToDate(formatDateToLocal(monthEnd))
-  }, [fetchClubs]) // Executar quando fetchClubs estiver disponível
-
-  useEffect(() => {
-    if (fromDate && toDate) {
-      fetchRanking()
-    }
-  }, [fromDate, toDate, fetchRanking])
-
-  const getPositionIcon = (position: number) => {
-    switch (position) {
-      case 1:
-        return <Trophy className="h-6 w-6 text-yellow-500" />
-      case 2:
-        return <Medal className="h-6 w-6 text-muted-foreground" />
-      case 3:
-        return <Award className="h-6 w-6 text-amber-600" />
-      default:
-        return <span className="h-6 w-6 flex items-center justify-center text-sm font-bold text-muted-foreground">{position}</span>
-    }
+    // Navegar para a página do clube
+    router.push(`/clube/${club.slug}`)
   }
 
   return (
@@ -135,156 +64,107 @@ export default function HomePage() {
       {/* Header */}
       <div className="text-center space-y-2 sm:space-y-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-          {currentClub ? `Ranking - ${currentClub.name}` : "Ranking Geral"}
+          Clubes de Poker
         </h1>
         <p className="text-base sm:text-lg text-muted-foreground px-4">
-          {currentClub 
-            ? `Acompanhe o desempenho dos jogadores do ${currentClub.name}`
-            : "Escolha um clube para ver o ranking dos jogadores"
-          }
+          Selecione um clube para acessar seus torneios e rankings
         </p>
       </div>
 
-      {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5" />
-            <span>Filtros</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col space-y-4">
-            {/* Seletor de Clube */}
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="club-select">Clube:</Label>
-              <Select value={selectedClub} onValueChange={setSelectedClub}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um clube" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os clubes</SelectItem>
-                  {clubs.map((club) => (
-                    <SelectItem key={club.id} value={club.id}>
-                      <div className="flex items-center space-x-2">
-                        <Building2 className="h-4 w-4" />
-                        <span>{club.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({club._count.players} jogadores)
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Filtros de Data */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex flex-col space-y-2">
-                <Label htmlFor="from-date">De:</Label>
-                <Input
-                  id="from-date"
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="w-full sm:w-40"
-                />
-              </div>
-
-              <div className="flex flex-col space-y-2">
-                <Label htmlFor="to-date">Até:</Label>
-                <Input
-                  id="to-date"
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="w-full sm:w-40"
-                />
-              </div>
-
-              <div className="flex items-end">
-                <Button onClick={fetchRanking} disabled={loading} className="w-full sm:w-auto">
-                  Atualizar
-                </Button>
-              </div>
-            </div>
+      {/* Lista de Clubes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <div className="col-span-full text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-muted-foreground">Carregando clubes...</p>
           </div>
-        </CardContent>
-      </Card>
+        ) : clubs.length === 0 ? (
+          <div className="col-span-full text-center py-8">
+            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Nenhum clube encontrado</p>
+          </div>
+        ) : (
+          clubs.map((club) => (
+            <Card 
+              key={club.id} 
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50"
+              onClick={() => handleClubClick(club)}
+            >
+              <CardHeader className="text-center space-y-4">
+                {club.logo ? (
+                  <div className="mx-auto">
+                    <Image 
+                      src={club.logo} 
+                      alt={`${club.name} logo`} 
+                      width={80} 
+                      height={80} 
+                      className="h-20 w-20 object-contain rounded-lg"
+                    />
+                  </div>
+                ) : (
+                  <div className="mx-auto bg-muted rounded-lg w-20 h-20 flex items-center justify-center">
+                    <Building2 className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                )}
+                <CardTitle className="text-xl">{club.name}</CardTitle>
+                {club.description && (
+                  <p className="text-sm text-muted-foreground">{club.description}</p>
+                )}
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                {/* Estatísticas do clube */}
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-center space-x-1">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Jogadores</span>
+                    </div>
+                    <p className="text-lg font-bold">{club._count.players}</p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-center space-x-1">
+                      <Trophy className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Torneios</span>
+                    </div>
+                    <p className="text-lg font-bold">{club._count.tournaments}</p>
+                  </div>
+                </div>
 
-      {/* Ranking */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
-            <span>
-              Ranking {fromDate && toDate &&
-                `- ${formatDateToBR(fromDate)} até ${formatDateToBR(toDate)}`
-              }
-              {currentClub && ` - ${currentClub.name}`}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Carregando ranking...</p>
-            </div>
-          ) : ranking.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {selectedClub && selectedClub !== "all" ? "Nenhum dado encontrado para este clube no período selecionado" : "Nenhum dado encontrado para este período"}
-              </p>
-              {(!selectedClub || selectedClub === "all") && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Selecione um clube para ver o ranking específico
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12 sm:w-16">Pos.</TableHead>
-                    <TableHead>Jogador</TableHead>
-                    <TableHead className="text-center">Pontos</TableHead>
-                    <TableHead className="text-center hidden sm:table-cell">Torneios</TableHead>
-                    <TableHead className="text-center hidden sm:table-cell">Vitórias</TableHead>
-                    <TableHead className="text-center hidden md:table-cell">Pos. Média</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ranking.map((player) => (
-                    <TableRow key={player.player.id} className={player.position <= 3 ? "bg-accent/50" : ""}>
-                      <TableCell className="flex items-center justify-center">
-                        {getPositionIcon(player.position)}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-sm sm:text-base">{player.player.name}</div>
-                          <div className="text-xs sm:text-sm text-muted-foreground">@{player.player.nickname}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center font-bold text-base sm:text-lg">
-                        {player.totalPoints.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-center hidden sm:table-cell">{player.tournaments}</TableCell>
-                      <TableCell className="text-center hidden sm:table-cell">{player.wins}</TableCell>
-                      <TableCell className="text-center hidden md:table-cell">
-                        {player.averagePosition ? player.averagePosition.toFixed(1) : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                {/* Suprema ID */}
+                {club.supremaId && (
+                  <div className="border-t pt-3">
+                    <div className="flex items-center justify-center space-x-2 text-sm">
+                      <span className="text-muted-foreground">Suprema ID:</span>
+                      <span className="font-mono font-semibold text-primary">{club.supremaId}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Botão de acesso */}
+                <div className="border-t pt-3">
+                  <div className="flex items-center justify-center space-x-2 text-sm text-primary">
+                    <span>Acessar clube</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Informações adicionais */}
+      {clubs.length > 0 && (
+        <Card className="bg-muted/50">
+          <CardContent className="text-center py-6">
+            <p className="text-sm text-muted-foreground">
+              Total de <strong>{clubs.length}</strong> clube{clubs.length !== 1 ? 's' : ''} disponível{clubs.length !== 1 ? 'eis' : ''}
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

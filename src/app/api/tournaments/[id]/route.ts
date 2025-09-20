@@ -9,25 +9,10 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        // Verificar autenticação
-        const session = await getServerSession(authOptions)
-
-        if (!session) {
-            return NextResponse.json(
-                { error: "Não autorizado" },
-                { status: 401 }
-            )
-        }
-
         const { id } = await params
 
-        // Construir filtro baseado no clube do usuário
-        const whereClause = session.user.role !== 'SUPER_ADMIN' && session.user.clubId
-            ? { id, clubId: session.user.clubId }
-            : { id }
-
         const tournament = await prisma.tournament.findUnique({
-            where: whereClause,
+            where: { id },
             include: {
                 participations: {
                     include: {

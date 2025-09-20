@@ -4,11 +4,29 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { parseDateFromInput } from "@/lib/date-utils"
 
-export async function GET(request: NextRequest) {
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
     try {
+        const { id: clubId } = params
         const { searchParams } = new URL(request.url)
         const month = searchParams.get('month')
         const year = searchParams.get('year')
+
+        // Verificar se o clube existe
+        const club = await prisma.club.findUnique({
+            where: { id: clubId }
+        })
+
+        if (!club) {
+            return NextResponse.json(
+                { error: "Clube não encontrado" },
+                { status: 404 }
+            )
+        }
+
+        // Acesso público para visualização de torneios - sem verificação de autenticação
 
         let dateFilter = {}
 
@@ -24,9 +42,11 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Buscar todos os torneios (acesso público)
         const tournaments = await prisma.tournament.findMany({
-            where: dateFilter,
+            where: {
+                clubId,
+                ...dateFilter
+            },
             orderBy: { date: 'desc' },
             include: {
                 participations: {
@@ -40,7 +60,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(tournaments)
     } catch (error) {
-        console.error("Erro ao buscar torneios:", error)
+        console.error("Erro ao buscar torneios do clube:", error)
         return NextResponse.json(
             { error: "Erro interno do servidor" },
             { status: 500 }
@@ -48,7 +68,10 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
     try {
         const session = await getServerSession(authOptions)
 
@@ -59,6 +82,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        const { id: clubId } = params
         const { name, date, buyIn, description, status, tipo } = await request.json()
 
         if (!name || !date) {
@@ -68,10 +92,22 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Verificar se o usuário tem um clube associado
-        if (session.user.role !== 'SUPER_ADMIN' && !session.user.clubId) {
+        // Verificar se o clube existe
+        const club = await prisma.club.findUnique({
+            where: { id: clubId }
+        })
+
+        if (!club) {
             return NextResponse.json(
-                { error: "Usuário não está associado a nenhum clube" },
+                { error: "Clube não encontrado" },
+                { status: 404 }
+            )
+        }
+
+        // Verificar permissão: Super Admin pode criar em qualquer clube, Club Admin só no seu próprio clube
+        if (session.user.role !== 'SUPER_ADMIN' && session.user.clubId !== clubId) {
+            return NextResponse.json(
+                { error: "Sem permissão para criar torneios neste clube" },
                 { status: 403 }
             )
         }
@@ -84,7 +120,7 @@ export async function POST(request: NextRequest) {
                 description,
                 status: status || 'UPCOMING',
                 type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL') ? tipo : 'EXPONENCIAL',
-                clubId: session.user.clubId! // Garantido pelo check acima
+                clubId
             },
         })
 

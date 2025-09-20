@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireSuperAdmin } from "@/lib/permissions"
+import { requireClubAdmin } from "@/lib/permissions"
 import bcrypt from "bcryptjs"
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        await requireSuperAdmin()
+        await requireClubAdmin(params.id)
         
         const users = await prisma.user.findMany({
             where: { clubId: params.id },
@@ -51,7 +51,7 @@ export async function POST(
     { params }: { params: { id: string } }
 ) {
     try {
-        await requireSuperAdmin()
+        await requireClubAdmin(params.id)
 
         const { name, email, password, role = 'CLUB_ADMIN' } = await request.json()
 
@@ -77,7 +77,7 @@ export async function POST(
             )
         }
 
-        if (!['CLUB_ADMIN', 'SUPER_ADMIN'].includes(role)) {
+        if (!['CLUB_ADMIN'].includes(role)) {
             return NextResponse.json(
                 { error: "Role inválido" },
                 { status: 400 }
