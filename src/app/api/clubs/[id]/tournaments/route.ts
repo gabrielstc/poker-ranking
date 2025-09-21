@@ -9,7 +9,7 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const { id: clubId } = params
+        const { id: clubId } = await params
         const { searchParams } = new URL(request.url)
         const month = searchParams.get('month')
         const year = searchParams.get('year')
@@ -82,7 +82,7 @@ export async function POST(
             )
         }
 
-        const { id: clubId } = params
+        const { id: clubId } = await params
         const { name, date, buyIn, description, status, tipo } = await request.json()
 
         if (!name || !date) {

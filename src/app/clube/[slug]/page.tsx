@@ -1,16 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect, useCallback, use, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Trophy, Medal, Award, Users, Calendar, Building2, ArrowLeft, ExternalLink } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { formatDateToBR } from "@/lib/date-utils"
 import { useRouter } from "next/navigation"
 import { useClub } from "@/contexts/ClubContext"
+import { useDebounce } from "@/hooks/useDebounce"
+import { ClubHeader } from "@/components/ranking/ClubHeader"
+import { RankingFilters } from "@/components/ranking/RankingFilters"
+import { RankingTable } from "@/components/ranking/RankingTable"
 import Link from "next/link"
 
 interface RankingPlayer {
@@ -58,15 +57,31 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
   
   const router = useRouter()
 
+  // Debounce das datas para evitar múltiplas requisições
+  const debouncedFromDate = useDebounce(fromDate, 500)
+  const debouncedToDate = useDebounce(toDate, 500)
+
+  // Refs para cache e controle de requests
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const rankingCacheRef = useRef<Map<string, { data: RankingPlayer[], timestamp: number }>>(new Map())
+  const clubInfoCacheRef = useRef<ClubInfo | null>(null)
+  const cacheExpiryTime = 5 * 60 * 1000 // 5 minutos
+
   // Converter para formato YYYY-MM-DD no timezone local
-  const formatDateToLocal = (date: Date) => {
+  const formatDateToLocal = useCallback((date: Date) => {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     return `${year}-${month}-${day}`
-  }
+  }, [])
 
   const fetchClubInfo = useCallback(async () => {
+    // Verificar cache primeiro
+    if (clubInfoCacheRef.current && clubInfoCacheRef.current.slug === slug) {
+      setClubInfo(clubInfoCacheRef.current)
+      return
+    }
+
     if (currentClub && currentClub.slug === slug) {
       // Club loaded from context, but we need to fetch complete info with counts
       try {
@@ -74,28 +89,33 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
         if (response.ok) {
           const clubData = await response.json()
           setClubInfo(clubData)
+          clubInfoCacheRef.current = clubData // Cache dos dados
         } else {
           // Fallback to context data without counts
-          setClubInfo({
+          const fallbackData = {
             id: currentClub.id,
             name: currentClub.name,
             slug: currentClub.slug,
             description: null,
             logo: currentClub.logo,
             _count: { players: 0, tournaments: 0 }
-          })
+          }
+          setClubInfo(fallbackData)
+          clubInfoCacheRef.current = fallbackData
         }
       } catch (error) {
         console.error('Erro ao buscar informações completas do clube:', error)
         // Fallback to context data
-        setClubInfo({
+        const fallbackData = {
           id: currentClub.id,
           name: currentClub.name,
           slug: currentClub.slug,
           description: null,
           logo: currentClub.logo,
           _count: { players: 0, tournaments: 0 }
-        })
+        }
+        setClubInfo(fallbackData)
+        clubInfoCacheRef.current = fallbackData
       }
       return
     }
@@ -107,6 +127,7 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
         const club = clubs.find(c => c.slug === slug)
         if (club) {
           setClubInfo(club)
+          clubInfoCacheRef.current = club // Cache dos dados
         } else {
           router.push('/') // Redirecionar se clube não encontrado
         }
@@ -120,26 +141,61 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
   const fetchRanking = useCallback(async () => {
     if (!clubInfo) return
     
+    // Criar chave de cache baseada nos parâmetros
+    const cacheKey = `${clubInfo.id}-${debouncedFromDate}-${debouncedToDate}`
+    
+    // Verificar cache primeiro
+    const cachedData = rankingCacheRef.current.get(cacheKey)
+    if (cachedData && Date.now() - cachedData.timestamp < cacheExpiryTime) {
+      setRanking(cachedData.data)
+      setLoading(false)
+      return
+    }
+
+    // Cancelar request anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Criar novo AbortController
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+    
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      if (fromDate && toDate) {
-        params.append('from', fromDate)
-        params.append('to', toDate)
+      if (debouncedFromDate && debouncedToDate) {
+        params.append('from', debouncedFromDate)
+        params.append('to', debouncedToDate)
       }
       params.append('clubId', clubInfo.id)
 
-      const response = await fetch(`/api/ranking?${params}`)
+      const response = await fetch(`/api/ranking?${params}`, {
+        signal: abortController.signal
+      })
+      
       if (response.ok) {
         const data: RankingResponse = await response.json()
-        setRanking(data.ranking)
+        if (!abortController.signal.aborted) {
+          setRanking(data.ranking)
+          // Cache dos dados
+          rankingCacheRef.current.set(cacheKey, {
+            data: data.ranking,
+            timestamp: Date.now()
+          })
+        }
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return // Request foi cancelado
+      }
       console.error('Erro ao buscar ranking:', error)
     } finally {
-      setLoading(false)
+      if (!abortController.signal.aborted) {
+        setLoading(false)
+      }
     }
-  }, [fromDate, toDate, clubInfo])
+  }, [debouncedFromDate, debouncedToDate, clubInfo, cacheExpiryTime])
 
   useEffect(() => {
     fetchClubInfo()
@@ -155,26 +211,21 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
     
     setFromDate(formatDateToLocal(monthStart))
     setToDate(formatDateToLocal(monthEnd))
-  }, [clubInfo])
+  }, [clubInfo, formatDateToLocal])
 
   useEffect(() => {
-    if (fromDate && toDate && clubInfo) {
+    if (debouncedFromDate && debouncedToDate && clubInfo) {
       fetchRanking()
     }
-  }, [fromDate, toDate, clubInfo, fetchRanking])
+  }, [debouncedFromDate, debouncedToDate, clubInfo, fetchRanking])
 
-  const getPositionIcon = (position: number) => {
-    switch (position) {
-      case 1:
-        return <Trophy className="h-6 w-6 text-yellow-500" />
-      case 2:
-        return <Medal className="h-6 w-6 text-muted-foreground" />
-      case 3:
-        return <Award className="h-6 w-6 text-amber-600" />
-      default:
-        return <span className="h-6 w-6 flex items-center justify-center text-sm font-bold text-muted-foreground">{position}</span>
+  // Memoizar o título do ranking
+  const rankingTitle = useMemo(() => {
+    if (debouncedFromDate && debouncedToDate) {
+      return `Ranking - ${formatDateToBR(debouncedFromDate)} até ${formatDateToBR(debouncedToDate)}`
     }
-  }
+    return "Ranking"
+  }, [debouncedFromDate, debouncedToDate])
 
   if (!clubInfo && !loading) {
     return (
@@ -193,164 +244,24 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-          </Link>
-          
-          <div className="flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
-                {clubInfo?.name || 'Carregando...'}
-              </h1>
-              {clubInfo?.description && (
-                <p className="text-sm text-muted-foreground">{clubInfo.description}</p>
-              )}
-            </div>
-          </div>
-
-          <a 
-            href={`/clube/${slug}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center"
-          >
-            <Button variant="outline" size="sm">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Compartilhar
-            </Button>
-          </a>
-        </div>
-
-        {clubInfo && (
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Badge variant="secondary" className="text-sm">
-              <Users className="w-4 h-4 mr-1" />
-              {clubInfo._count.players} jogadores
-            </Badge>
-            <Badge variant="secondary" className="text-sm">
-              <Trophy className="w-4 h-4 mr-1" />
-              {clubInfo._count.tournaments} torneios
-            </Badge>
-          </div>
-        )}
-      </div>
+      <ClubHeader clubInfo={clubInfo} slug={slug} />
 
       {/* Filtros */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5" />
-            <span>Filtrar por Período</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="from-date">De:</Label>
-              <Input
-                id="from-date"
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="w-full sm:w-40"
-              />
-            </div>
-
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="to-date">Até:</Label>
-              <Input
-                id="to-date"
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="w-full sm:w-40"
-              />
-            </div>
-
-            <div className="flex items-end">
-              <Button onClick={fetchRanking} disabled={loading} className="w-full sm:w-auto">
-                Atualizar
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RankingFilters
+        fromDate={fromDate}
+        toDate={toDate}
+        loading={loading}
+        onFromDateChange={setFromDate}
+        onToDateChange={setToDate}
+        onRefresh={fetchRanking}
+      />
 
       {/* Ranking */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
-            <span>
-              Ranking {fromDate && toDate &&
-                `- ${formatDateToBR(fromDate)} até ${formatDateToBR(toDate)}`
-              }
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-muted-foreground">Carregando ranking...</p>
-            </div>
-          ) : ranking.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                Nenhum dado encontrado para este período
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Verifique se existem torneios realizados no período selecionado
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12 sm:w-16">Pos.</TableHead>
-                    <TableHead>Jogador</TableHead>
-                    <TableHead className="text-center">Pontos</TableHead>
-                    <TableHead className="text-center hidden sm:table-cell">Torneios</TableHead>
-                    <TableHead className="text-center hidden sm:table-cell">Vitórias</TableHead>
-                    <TableHead className="text-center hidden md:table-cell">Pos. Média</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ranking.map((player) => (
-                    <TableRow key={player.player.id} className={player.position <= 3 ? "bg-accent/50" : ""}>
-                      <TableCell className="flex items-center justify-center">
-                        {getPositionIcon(player.position)}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-sm sm:text-base">{player.player.name}</div>
-                          <div className="text-xs sm:text-sm text-muted-foreground">@{player.player.nickname}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center font-bold text-base sm:text-lg">
-                        {player.totalPoints.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-center hidden sm:table-cell">{player.tournaments}</TableCell>
-                      <TableCell className="text-center hidden sm:table-cell">{player.wins}</TableCell>
-                      <TableCell className="text-center hidden md:table-cell">
-                        {player.averagePosition ? player.averagePosition.toFixed(1) : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <RankingTable
+        ranking={ranking}
+        loading={loading}
+        title={rankingTitle}
+      />
     </div>
   )
 }
