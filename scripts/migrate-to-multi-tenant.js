@@ -1,4 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
+const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 
 async function migrateToMultiTenant() {
   const prisma = new PrismaClient()
@@ -55,12 +57,21 @@ async function migrateToMultiTenant() {
     console.log(`${tournamentsUpdated.count} torneios atualizados para o clube padrão`)
 
     // 5. Criar usuário super-admin
-    const bcrypt = require('bcryptjs')
-    const hashedPassword = await bcrypt.hash('admin123', 12)
+    
+    // Usar variável de ambiente ou gerar senha segura
+    const adminPassword = process.env.MIGRATION_ADMIN_PASSWORD || (() => {
+      const generatedPassword = crypto.randomBytes(16).toString('hex')
+      console.log('⚠️  ATENÇÃO: Senha de super admin gerada automaticamente:')
+      console.log(`🔐 Senha: ${generatedPassword}`)
+      console.log('📝 ANOTE ESTA SENHA IMEDIATAMENTE!')
+      return generatedPassword
+    })()
+    
+    const hashedPassword = await bcrypt.hash(adminPassword, 12)
     
     const superAdmin = await prisma.user.create({
       data: {
-        email: 'superadmin@poker.com',
+        email: process.env.MIGRATION_ADMIN_EMAIL || 'superadmin@poker.com',
         name: 'Super Administrador',
         password: hashedPassword,
         role: 'SUPER_ADMIN',
@@ -72,8 +83,10 @@ async function migrateToMultiTenant() {
 
     console.log('Migração concluída com sucesso!')
     console.log('Credenciais do super admin:')
-    console.log('Email: superadmin@poker.com')
-    console.log('Senha: admin123')
+    console.log(`Email: ${superAdmin.email}`)
+    if (!process.env.MIGRATION_ADMIN_PASSWORD) {
+      console.log('Senha: A senha foi gerada automaticamente e exibida acima')
+    }
     console.log('IMPORTANTE: Altere a senha após o primeiro login!')
 
   } catch (error) {

@@ -18,7 +18,13 @@ export async function GET(
                 description: true,
                 logo: true,
                 supremaId: true,
-                isActive: true
+                isActive: true,
+                _count: {
+                    select: {
+                        players: true,
+                        tournaments: true
+                    }
+                }
             }
         })
 
@@ -33,7 +39,13 @@ export async function GET(
                     description: true,
                     logo: true,
                     supremaId: true,
-                    isActive: true
+                    isActive: true,
+                    _count: {
+                        select: {
+                            players: true,
+                            tournaments: true
+                        }
+                    }
                 }
             })
         }

@@ -18,6 +18,7 @@ model Club {
   description String?
   logo        String?
   supremaId   String?  // ID do clube na Suprema (usado para propaganda)
+  whatsapp    String?  // Número do WhatsApp para contato
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 
 const prisma = new PrismaClient()
 
@@ -39,9 +40,13 @@ async function createSuperAdminDev() {
         }
 
         // Criar super admin
-        const email = 'superadmin@poker.com'
-        const password = 'admin123'
-        const hashedPassword = await bcrypt.hash(password, 10)
+        const email = process.env.DEV_ADMIN_EMAIL || 'superadmin@poker.com'
+        const password = process.env.DEV_ADMIN_PASSWORD || (() => {
+            const generatedPassword = crypto.randomBytes(8).toString('hex')
+            console.log('⚠️  ATENÇÃO: Senha gerada automaticamente para desenvolvimento')
+            return generatedPassword
+        })()
+        const hashedPassword = await bcrypt.hash(password, 12)
 
         const superAdmin = await prisma.user.create({
             data: {

@@ -66,23 +66,37 @@ export default function ClubRankingPage({ params }: { params: Promise<{ slug: st
     return `${year}-${month}-${day}`
   }
 
-  // Use club from context when available
-  useEffect(() => {
-    if (currentClub && currentClub.slug === slug) {
-      setClubInfo({
-        id: currentClub.id,
-        name: currentClub.name,
-        slug: currentClub.slug,
-        description: null,
-        logo: currentClub.logo,
-        _count: { players: 0, tournaments: 0 }
-      })
-    }
-  }, [currentClub, slug])
-
   const fetchClubInfo = useCallback(async () => {
     if (currentClub && currentClub.slug === slug) {
-      // Club already loaded from context
+      // Club loaded from context, but we need to fetch complete info with counts
+      try {
+        const response = await fetch(`/api/public/clubs/${currentClub.id}`)
+        if (response.ok) {
+          const clubData = await response.json()
+          setClubInfo(clubData)
+        } else {
+          // Fallback to context data without counts
+          setClubInfo({
+            id: currentClub.id,
+            name: currentClub.name,
+            slug: currentClub.slug,
+            description: null,
+            logo: currentClub.logo,
+            _count: { players: 0, tournaments: 0 }
+          })
+        }
+      } catch (error) {
+        console.error('Erro ao buscar informações completas do clube:', error)
+        // Fallback to context data
+        setClubInfo({
+          id: currentClub.id,
+          name: currentClub.name,
+          slug: currentClub.slug,
+          description: null,
+          logo: currentClub.logo,
+          _count: { players: 0, tournaments: 0 }
+        })
+      }
       return
     }
     

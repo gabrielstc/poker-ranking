@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "./auth"
+import { logUnauthorizedAccess } from "./audit"
 
 export interface UserSession {
   id: string
@@ -65,4 +66,44 @@ export function canAccessClub(user: UserSession, clubId: string): boolean {
 export function getUserClubFilter(user: UserSession): { clubId?: string } {
   // Super admin pode ver tudo, club admin só vê seu clube
   return user.role === 'SUPER_ADMIN' ? {} : { clubId: user.clubId! }
+}
+
+/**
+ * Valida se o usuário tem acesso ao clube especificado
+ * @param user Usuário autenticado
+ * @param targetClubId ID do clube que o usuário quer acessar
+ * @throws Error se o acesso for negado
+ */
+export function validateClubAccess(user: UserSession, targetClubId: string): void {
+  if (user.role === 'SUPER_ADMIN') {
+    return // Super admin tem acesso a tudo
+  }
+  
+  if (user.role === 'CLUB_ADMIN' && user.clubId !== targetClubId) {
+    // Log de tentativa de acesso não autorizado
+    logUnauthorizedAccess(
+      user.email,
+      user.id,
+      `club:${targetClubId}`,
+      targetClubId,
+      { 
+        userClubId: user.clubId,
+        attemptedAction: 'ACCESS_CLUB_DATA'
+      }
+    )
+    
+    throw new Error('Acesso negado: Usuário não tem permissão para acessar este clube')
+  }
+}
+
+/**
+ * Middleware para validar acesso a clube em rotas com parâmetro [id]
+ * @param user Usuário autenticado
+ * @param clubId ID do clube da rota
+ * @returns UserSession se válido
+ * @throws Error se inválido
+ */
+export async function requireClubAccess(user: UserSession, clubId: string): Promise<UserSession> {
+  validateClubAccess(user, clubId)
+  return user
 }

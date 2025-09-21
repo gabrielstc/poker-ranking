@@ -2,11 +2,34 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireClubAdmin } from "@/lib/permissions"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        // Para API pública, retornar jogadores de todos os clubes
-        // Mas sem informações sensíveis
+        const { searchParams } = new URL(request.url)
+        const clubId = searchParams.get('clubId')
+
+        // Para API pública, clubId é obrigatório para evitar vazamento de dados
+        if (!clubId) {
+            return NextResponse.json(
+                { error: "ClubId é obrigatório para acesso público aos jogadores" },
+                { status: 400 }
+            )
+        }
+
+        // Verificar se o clube existe
+        const club = await prisma.club.findUnique({
+            where: { id: clubId },
+            select: { id: true, name: true, isActive: true }
+        })
+
+        if (!club || !club.isActive) {
+            return NextResponse.json(
+                { error: "Clube não encontrado ou inativo" },
+                { status: 404 }
+            )
+        }
+
         const players = await prisma.player.findMany({
+            where: { clubId }, // FILTRO OBRIGATÓRIO POR CLUBE
             orderBy: { name: 'asc' },
             select: {
                 id: true,
@@ -108,6 +131,9 @@ export async function POST(request: NextRequest) {
                 clubId: user.clubId!, // Associar ao clube do usuário
             },
         })
+
+        // Log de auditoria
+        console.log(`👤 Jogador criado - User: ${user.email}, Club: ${user.clubId}, Player: ${player.id}`)
 
         return NextResponse.json(player, { status: 201 })
     } catch (error) {

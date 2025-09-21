@@ -9,6 +9,15 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url)
         const month = searchParams.get('month')
         const year = searchParams.get('year')
+        const clubId = searchParams.get('clubId')
+
+        // Para acesso público, clubId deve ser fornecido
+        if (!clubId) {
+            return NextResponse.json(
+                { error: "ClubId é obrigatório para acesso público aos torneios" },
+                { status: 400 }
+            )
+        }
 
         let dateFilter = {}
 
@@ -24,14 +33,31 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Buscar todos os torneios (acesso público)
+        // Buscar torneios apenas do clube especificado
         const tournaments = await prisma.tournament.findMany({
-            where: dateFilter,
+            where: {
+                ...dateFilter,
+                clubId: clubId // FILTRO OBRIGATÓRIO POR CLUBE
+            },
             orderBy: { date: 'desc' },
             include: {
+                club: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true
+                    }
+                },
                 participations: {
                     include: {
-                        player: true
+                        player: {
+                            select: {
+                                id: true,
+                                name: true,
+                                nickname: true
+                                // Removido email e phone por segurança
+                            }
+                        }
                     },
                     orderBy: { position: 'asc' }
                 }
@@ -68,11 +94,38 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Verificar se o usuário tem um clube associado
+        // Verificar se o usuário tem um clube associado (exceto super admin)
         if (session.user.role !== 'SUPER_ADMIN' && !session.user.clubId) {
             return NextResponse.json(
                 { error: "Usuário não está associado a nenhum clube" },
                 { status: 403 }
+            )
+        }
+
+        // Super admin pode criar torneis para qualquer clube se clubId for fornecido
+        let targetClubId = session.user.clubId
+        
+        if (session.user.role === 'SUPER_ADMIN') {
+            const { clubId } = await request.json()
+            if (clubId) {
+                // Verificar se o clube existe
+                const club = await prisma.club.findUnique({
+                    where: { id: clubId }
+                })
+                if (!club) {
+                    return NextResponse.json(
+                        { error: "Clube não encontrado" },
+                        { status: 404 }
+                    )
+                }
+                targetClubId = clubId
+            }
+        }
+
+        if (!targetClubId) {
+            return NextResponse.json(
+                { error: "Clube deve ser especificado" },
+                { status: 400 }
             )
         }
 
@@ -84,9 +137,12 @@ export async function POST(request: NextRequest) {
                 description,
                 status: status || 'UPCOMING',
                 type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL') ? tipo : 'EXPONENCIAL',
-                clubId: session.user.clubId! // Garantido pelo check acima
+                clubId: targetClubId
             },
         })
+
+        // Log de auditoria
+        console.log(`🏆 Torneio criado - User: ${session.user.email}, Club: ${targetClubId}, Tournament: ${tournament.id}`)
 
         return NextResponse.json(tournament, { status: 201 })
     } catch (error) {
