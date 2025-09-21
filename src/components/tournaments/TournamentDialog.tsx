@@ -14,7 +14,7 @@ interface Tournament {
     buyIn: number | null
     description: string | null
     status: string
-    type?: "FIXO" | "EXPONENCIAL"
+    type?: "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW"
 }
 
 interface FormData {
@@ -23,7 +23,7 @@ interface FormData {
     buyIn: string
     description: string
     status: string
-    tipo: "FIXO" | "EXPONENCIAL"
+    tipo: "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW"
 }
 
 interface TournamentDialogProps {
@@ -47,7 +47,7 @@ export function TournamentDialog({
         buyIn: "",
         description: "",
         status: "UPCOMING",
-        tipo: "EXPONENCIAL" as "FIXO" | "EXPONENCIAL",
+        tipo: "EXPONENCIAL_NEW" as "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW",
     })
 
     useEffect(() => {
@@ -66,7 +66,7 @@ export function TournamentDialog({
                 buyIn: editingTournament.buyIn?.toString() || "",
                 description: editingTournament.description || "",
                 status: editingTournament.status,
-                tipo: editingTournament.type || "EXPONENCIAL",
+                tipo: editingTournament.type || "EXPONENCIAL_NEW",
             })
         } else {
             setFormData({
@@ -75,7 +75,7 @@ export function TournamentDialog({
                 buyIn: "",
                 description: "",
                 status: "UPCOMING",
-                tipo: "EXPONENCIAL",
+                tipo: "EXPONENCIAL_NEW",
             })
         }
     }, [editingTournament])
@@ -150,12 +150,13 @@ export function TournamentDialog({
 
                     <div>
                         <Label htmlFor="tipo">Tipo</Label>
-                        <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as "FIXO" | "EXPONENCIAL" }))}>
+                        <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW" }))}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="EXPONENCIAL">Exponencial</SelectItem>
+                                <SelectItem value="EXPONENCIAL_NEW">Exponencial (Novo)</SelectItem>
+                                <SelectItem value="EXPONENCIAL">Exponencial (Antigo)</SelectItem>
                                 <SelectItem value="FIXO">Fixo</SelectItem>
                             </SelectContent>
                         </Select>

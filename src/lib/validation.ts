@@ -41,8 +41,8 @@ export const CreateTournamentSchema = z.object({
     .optional(),
   status: z.enum(['UPCOMING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])
     .default('UPCOMING'),
-  type: z.enum(['FIXO', 'EXPONENCIAL'])
-    .default('EXPONENCIAL'),
+  type: z.enum(['FIXO', 'EXPONENCIAL', 'EXPONENCIAL_NEW'])
+    .default('EXPONENCIAL_NEW'),
   clubId: z.string()
     .uuid('ClubId deve ser um UUID válido')
     .optional() // Apenas para super admin

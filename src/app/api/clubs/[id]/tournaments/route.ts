@@ -119,7 +119,7 @@ export async function POST(
                 buyIn: buyIn || null,
                 description,
                 status: status || 'UPCOMING',
-                type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL') ? tipo : 'EXPONENCIAL',
+                type: (tipo === 'FIXO' || tipo === 'EXPONENCIAL' || tipo === 'EXPONENCIAL_NEW') ? tipo : 'EXPONENCIAL_NEW',
                 clubId
             },
         })

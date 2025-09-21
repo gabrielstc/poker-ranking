@@ -82,9 +82,10 @@ async function legacyMigration() {
         // Criar clube padrão
         const defaultClub = {
             id: 'cmfsdgux30000vvbgqqbmg9tz', // ID fixo para compatibilidade
-            name: 'Clube Principal',
-            slug: 'clube-principal',
-            description: 'Clube principal para migração dos dados existentes',
+            name: 'Five Series',
+            slug: 'five-series',
+            supremaId: "39906",
+            description: 'Suprema Five Series Poker Club',
             logo: null,
             isActive: true,
             createdAt: new Date(),

@@ -80,13 +80,33 @@ export function getPointsForPosition(position: number, totalParticipants: number
     return Math.max(points, 0)
 }
 
+export function calculateExponentialPoints(position: number, totalParticipants: number): number {
+    // Nova fórmula exponencial: 10 + SE(posição <= 0,4 * participantes; participantes * (1/(1+LOG(posição))); 0)
+    if (position <= 0 || position > totalParticipants) return 0
+
+    const threshold = 0.4 * totalParticipants
+    
+    if (position <= threshold) {
+        // Para posições dentro do top 40%: participantes * (1/(1+LOG(posição)))
+        const logComponent = 1 / (1 + Math.log10(position))
+        const points = 10 + (totalParticipants * logComponent)
+        return Math.round(points * 100) / 100 // Arredonda para 2 casas decimais
+    } else {
+        // Para posições fora do top 40%: apenas 10 pontos base
+        return 10
+    }
+}
+
 export function getPointsForPositionByType(
     position: number,
     totalParticipants: number,
-    type: "FIXO" | "EXPONENCIAL"
+    type: "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW"
 ): number {
     if (type === "FIXO") {
         return getFixedPointsForPosition(position)
+    }
+    if (type === "EXPONENCIAL_NEW") {
+        return calculateExponentialPoints(position, totalParticipants)
     }
     return getPointsForPosition(position, totalParticipants)
 }
@@ -96,7 +116,7 @@ export function recalculateAllTournamentPoints(participations: Array<{
     id: string
     position: number | null
     points: number | null
-}>, type: "FIXO" | "EXPONENCIAL" = "EXPONENCIAL"): Array<{
+}>, type: "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW" = "EXPONENCIAL"): Array<{
     id: string
     position: number | null
     points: number

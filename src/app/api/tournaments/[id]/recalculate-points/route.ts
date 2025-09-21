@@ -40,7 +40,8 @@ export async function POST(
         // Calcular novos pontos
         const updatedParticipations = recalculateAllTournamentPoints(
             participations,
-            tournament?.type === 'FIXO' ? 'FIXO' : 'EXPONENCIAL'
+            tournament?.type === 'FIXO' ? 'FIXO' : 
+            tournament?.type === 'EXPONENCIAL_NEW' ? 'EXPONENCIAL_NEW' : 'EXPONENCIAL'
         )
 
         // Atualizar no banco de dados

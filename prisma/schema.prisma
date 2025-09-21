@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,21 +9,19 @@ datasource db {
 }
 
 model Club {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
+  id          String       @id @default(cuid())
+  name        String       @unique
   description String?
   logo        String?
-  supremaId   String?  // ID do clube na Suprema (usado para propaganda)
-  whatsapp    String?  // Número do WhatsApp para contato
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relacionamentos
-  users          User[]
-  players        Player[]
-  tournaments    Tournament[]
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  slug        String       @unique
+  supremaId   String?
+  whatsapp    String?
+  players     Player[]
+  tournaments Tournament[]
+  users       User[]
 
   @@map("clubs")
 }
@@ -36,67 +31,59 @@ model User {
   email     String   @unique
   name      String?
   password  String
-  role      UserRole @default(CLUB_ADMIN)
-  clubId    String?  // null para super-admin
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relacionamento com clube (opcional para super-admin)
-  club Club? @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  role      UserRole @default(CLUB_ADMIN)
+  clubId    String?
+  club      Club?    @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }
 
 model Player {
-  id        String   @id @default(cuid())
-  name      String
-  nickname  String   
-  email     String?
-  phone     String?
-  clubId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relacionamentos
+  id             String                    @id @default(cuid())
+  name           String
+  nickname       String
+  email          String?
+  phone          String?
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  clubId         String
   club           Club                      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   participations TournamentParticipation[]
 
-  @@unique([nickname, clubId]) // nickname único por clube
+  @@unique([nickname, clubId])
   @@map("players")
 }
 
 model Tournament {
-  id          String   @id @default(cuid())
-  name        String
-  date        DateTime
-  buyIn       Float?
-  description String?
-  status      TournamentStatus @default(UPCOMING)
-  type        TournamentType   @default(EXPONENCIAL)
-  clubId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relacionamentos
-  club           Club                      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  id             String                    @id @default(cuid())
+  name           String
+  date           DateTime
+  buyIn          Float?
+  description    String?
+  status         TournamentStatus          @default(UPCOMING)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  type           TournamentType            @default(EXPONENCIAL)
+  clubId         String
   participations TournamentParticipation[]
+  club           Club                      @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("tournaments")
 }
 
 model TournamentParticipation {
-  id           String @id @default(cuid())
+  id           String     @id @default(cuid())
   playerId     String
   tournamentId String
-  position     Int?   // Posição final no torneio (1º, 2º, 3º, etc.)
-  points       Float? // Pontos obtidos (com até 1 casa decimal)
-  prize        Float? // Prêmio em dinheiro
-  eliminated   Boolean @default(false)
+  position     Int?
+  points       Float?
+  prize        Float?
+  eliminated   Boolean    @default(false)
   eliminatedAt DateTime?
-
-  // Relacionamentos
-  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player       Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, tournamentId])
   @@map("tournament_participations")
@@ -112,6 +99,7 @@ enum TournamentStatus {
 enum TournamentType {
   FIXO
   EXPONENCIAL
+  EXPONENCIAL_NEW
 }
 
 enum UserRole {

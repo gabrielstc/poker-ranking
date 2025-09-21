@@ -27,7 +27,7 @@ interface Tournament {
     buyIn: number | null
     description: string | null
     status: string
-    type?: "FIXO" | "EXPONENCIAL"
+    type?: "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW"
     participations: Array<{
         id: string
         player: {
@@ -54,7 +54,7 @@ export default function TournamentsPage() {
         buyIn: "",
         description: "",
         status: "UPCOMING",
-        tipo: "EXPONENCIAL" as "FIXO" | "EXPONENCIAL",
+        tipo: "EXPONENCIAL_NEW" as "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW",
     })
 
     useEffect(() => {
@@ -129,7 +129,7 @@ export default function TournamentsPage() {
             buyIn: tournament.buyIn?.toString() || "",
             description: tournament.description || "",
             status: tournament.status,
-            tipo: tournament.type || "EXPONENCIAL",
+            tipo: tournament.type || "EXPONENCIAL_NEW",
         })
         setDialogOpen(true)
     }
@@ -160,7 +160,7 @@ export default function TournamentsPage() {
             buyIn: "",
             description: "",
             status: "UPCOMING",
-            tipo: "EXPONENCIAL",
+            tipo: "EXPONENCIAL_NEW",
         })
         setEditingTournament(null)
     }
@@ -277,12 +277,13 @@ export default function TournamentsPage() {
 
                             <div>
                                 <Label htmlFor="tipo">Tipo</Label>
-                                <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as "FIXO" | "EXPONENCIAL" }))}>
+                                <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value as "FIXO" | "EXPONENCIAL" | "EXPONENCIAL_NEW" }))}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="EXPONENCIAL">Exponencial</SelectItem>
+                                        <SelectItem value="EXPONENCIAL_NEW">Exponencial (Novo)</SelectItem>
+                                        <SelectItem value="EXPONENCIAL">Exponencial (Antigo)</SelectItem>
                                         <SelectItem value="FIXO">Fixo</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -363,7 +364,11 @@ export default function TournamentsPage() {
                                             {tournament.buyIn ? `R$ ${tournament.buyIn.toFixed(2)}` : "-"}
                                         </TableCell>
                                         <TableCell>{getStatusBadge(tournament.status)}</TableCell>
-                                        <TableCell>{tournament.type === "FIXO" ? "Fixo" : "Exponencial"}</TableCell>
+                                        <TableCell>
+                                            {tournament.type === "FIXO" ? "Fixo" : 
+                                             tournament.type === "EXPONENCIAL_NEW" ? "Exponencial (Novo)" : 
+                                             "Exponencial (Antigo)"}
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex items-center space-x-1">
                                                 <Users className="h-4 w-4" />
