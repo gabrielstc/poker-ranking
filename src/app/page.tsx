@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
 import { formatDateToBR } from "@/lib/date-utils"
+import { useSearchParams } from "next/navigation"
 
 interface RankingPlayer {
   position: number
@@ -27,6 +28,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [fromDate, setFromDate] = useState<string>("")
   const [toDate, setToDate] = useState<string>("")
+  const searchParams = useSearchParams()
+  const initializedRef = useRef(false)
   
   // Converter para formato YYYY-MM-DD no timezone local
   const formatDateToLocal = (date: Date) => {
@@ -40,12 +43,16 @@ export default function HomePage() {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      if (fromDate && toDate) {
-        params.append('from', fromDate)
-        params.append('to', toDate)
+      if (fromDate) {
+        params.append('from-date', fromDate)
+      }
+      if (toDate) {
+        params.append('to-date', toDate)
       }
 
-      const response = await fetch(`/api/ranking?${params}`)
+      const queryString = params.toString()
+      const url = queryString ? `/api/ranking?${queryString}` : "/api/ranking"
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setRanking(data)
@@ -59,14 +66,21 @@ export default function HomePage() {
   }, [fromDate, toDate])
 
   useEffect(() => {
-    // Calcular as datas diretamente no useEffect para evitar dependências desnecessárias
+    if (initializedRef.current) {
+      return
+    }
+
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    
-    setFromDate(formatDateToLocal(monthStart))
-    setToDate(formatDateToLocal(monthEnd))
-  }, []) // Executar apenas uma vez na inicialização
+
+    const fromParam = searchParams.get("from-date")
+    const toParam = searchParams.get("to-date")
+
+    setFromDate(fromParam ?? formatDateToLocal(monthStart))
+    setToDate(toParam ?? formatDateToLocal(monthEnd))
+    initializedRef.current = true
+  }, [searchParams])
 
   useEffect(() => {
     if (fromDate && toDate) {
