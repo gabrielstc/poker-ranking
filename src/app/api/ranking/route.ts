@@ -5,21 +5,39 @@ import { parseDateFromInput } from "@/lib/date-utils"
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
-        const fromDate = searchParams.get('from')
-        const toDate = searchParams.get('to')
+        const fromDateParam = searchParams.get('from-date')
+        const toDateParam = searchParams.get('to-date')
 
-        let dateFilter = {}
+        let dateFilter: {
+            date?: {
+                gte?: Date
+                lte?: Date
+            }
+        } = {}
 
-        if (fromDate && toDate) {
-            const startDate = parseDateFromInput(fromDate)
-            const endDate = parseDateFromInput(toDate)
-            endDate.setHours(23, 59, 59, 999) // Fim do dia
+        if (fromDateParam || toDateParam) {
+            const dateRange: {
+                gte?: Date
+                lte?: Date
+            } = {}
 
-            dateFilter = {
-                date: {
-                    gte: startDate,
-                    lte: endDate
+            if (fromDateParam) {
+                const startDate = parseDateFromInput(fromDateParam)
+                if (!Number.isNaN(startDate.getTime())) {
+                    dateRange.gte = startDate
                 }
+            }
+
+            if (toDateParam) {
+                const endDate = parseDateFromInput(toDateParam)
+                if (!Number.isNaN(endDate.getTime())) {
+                    endDate.setHours(23, 59, 59, 999) // Fim do dia
+                    dateRange.lte = endDate
+                }
+            }
+
+            if (Object.keys(dateRange).length > 0) {
+                dateFilter = { date: dateRange }
             }
         }
 
