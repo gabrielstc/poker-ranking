@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         // Apenas super admin pode criar clubes
         await requireSuperAdmin()
 
-        const { name, description, logo, supremaId } = await request.json()
+        const { name, description, logo, supremaId, whatsapp } = await request.json()
 
         // Validação
         if (!name || typeof name !== 'string' || name.trim().length < 2) {
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
         const sanitizedDescription = description?.trim() || null
         const sanitizedLogo = logo?.trim() || null
         const sanitizedSupremaId = supremaId?.trim() || null
+        const sanitizedWhatsapp = whatsapp?.trim() || null
 
         // Verificar se já existe clube com esse nome
         const existingClub = await prisma.club.findUnique({
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
                 description: sanitizedDescription,
                 logo: sanitizedLogo,
                 supremaId: sanitizedSupremaId,
+                whatsapp: sanitizedWhatsapp,
                 isActive: true
             }
         })

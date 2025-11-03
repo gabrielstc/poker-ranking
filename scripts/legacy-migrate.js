@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
 const fs = require('fs')
 const path = require('path')
+const bcrypt = require('bcryptjs')
 require('dotenv').config()
 
 // Configuração dos clientes Prisma
@@ -15,7 +16,7 @@ const prodPrisma = new PrismaClient({
 const devPrisma = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.DEV_DATABASE_URL
+            url: process.env.DATABASE_URL
         }
     }
 })
@@ -151,7 +152,25 @@ async function legacyMigration() {
         })
         console.log('   ✅ Clube criado')
 
-        // 2. Migrar usuários (adicionar role e clubId)
+        // 2. Criar super-admin
+        console.log('   👑 Criando super-admin...')
+        
+        const superAdminEmail = process.env.ADMIN_EMAIL || 'superadmin@seudominio.com'
+        const superAdminPassword = process.env.ADMIN_PASSWORD || 'OutraSenhaSegura456!@#'
+        const hashedPassword = await bcrypt.hash(superAdminPassword, 12)
+        
+        await devPrisma.user.create({
+            data: {
+                email: superAdminEmail,
+                name: 'Super Admin',
+                password: hashedPassword,
+                role: 'SUPER_ADMIN',
+                clubId: null // Super admin não está vinculado a clube específico
+            }
+        })
+        console.log(`   ✅ Super-admin criado: ${superAdminEmail}`)
+
+        // 3. Migrar usuários (adicionar role e clubId)
         if (rawUsers.length > 0) {
             console.log(`   👥 Migrando ${rawUsers.length} usuários...`)
             
@@ -172,7 +191,7 @@ async function legacyMigration() {
             console.log('   ✅ Usuários migrados')
         }
 
-        // 3. Migrar jogadores (adicionar clubId)
+        // 4. Migrar jogadores (adicionar clubId)
         if (rawPlayers.length > 0) {
             console.log(`   🎯 Migrando ${rawPlayers.length} jogadores...`)
             
@@ -193,7 +212,7 @@ async function legacyMigration() {
             console.log('   ✅ Jogadores migrados')
         }
 
-        // 4. Migrar torneios (adicionar clubId)
+        // 5. Migrar torneios (adicionar clubId)
         if (rawTournaments.length > 0) {
             console.log(`   🏆 Migrando ${rawTournaments.length} torneios...`)
             
@@ -216,7 +235,7 @@ async function legacyMigration() {
             console.log('   ✅ Torneios migrados')
         }
 
-        // 5. Migrar participações (sem alterações)
+        // 6. Migrar participações (sem alterações)
         if (rawParticipations.length > 0) {
             console.log(`   📊 Migrando ${rawParticipations.length} participações...`)
             
@@ -257,7 +276,7 @@ async function legacyMigration() {
 
         const success = 
             devCounts.clubs === 1 &&
-            devCounts.users === rawUsers.length &&
+            devCounts.users === rawUsers.length + 1 && // +1 pelo super-admin
             devCounts.players === rawPlayers.length &&
             devCounts.tournaments === rawTournaments.length &&
             devCounts.participations === rawParticipations.length
@@ -267,7 +286,8 @@ async function legacyMigration() {
             console.log('✅ Todos os dados legacy foram migrados para multi-tenant')
             console.log(`\n📋 Resumo da migração:`)
             console.log(`   - Criado clube padrão: "${defaultClub.name}"`)
-            console.log(`   - Todos os usuários definidos como CLUB_ADMIN`)
+            console.log(`   - Criado super-admin: ${superAdminEmail}`)
+            console.log(`   - Todos os usuários legados definidos como CLUB_ADMIN`)
             console.log(`   - Todas as entidades vinculadas ao clube padrão`)
             console.log(`   - Sistema agora é multi-tenant compatível`)
         } else {
@@ -279,6 +299,10 @@ async function legacyMigration() {
             timestamp: new Date().toISOString(),
             migration: 'legacy-to-multitenant',
             defaultClub,
+            superAdmin: {
+                email: superAdminEmail,
+                created: true
+            },
             extracted: {
                 users: rawUsers.length,
                 players: rawPlayers.length,

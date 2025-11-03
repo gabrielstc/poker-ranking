@@ -19,6 +19,8 @@ interface Club {
     name: string
     description: string | null
     logo: string | null
+    supremaId: string | null
+    whatsapp: string | null
     isActive: boolean
     createdAt: string
     _count: {
@@ -42,7 +44,9 @@ export default function SuperAdminPage() {
     const [formData, setFormData] = useState({
         name: "",
         description: "",
-        logo: ""
+        logo: "",
+        supremaId: "",
+        whatsapp: ""
     })
     
     const { data: session, status } = useSession()
@@ -115,7 +119,7 @@ export default function SuperAdminPage() {
             if (response.ok) {
                 toast.success('Clube criado com sucesso!')
                 setCreateClubOpen(false)
-                setFormData({ name: "", description: "", logo: "" })
+                setFormData({ name: "", description: "", logo: "", supremaId: "", whatsapp: "" })
                 fetchClubs()
             } else {
                 const error = await response.json()
@@ -148,7 +152,7 @@ export default function SuperAdminPage() {
                 toast.success('Clube atualizado com sucesso!')
                 setEditClubOpen(false)
                 setSelectedClub(null)
-                setFormData({ name: "", description: "", logo: "" })
+                setFormData({ name: "", description: "", logo: "", supremaId: "", whatsapp: "" })
                 fetchClubs()
             } else {
                 const error = await response.json()
@@ -212,7 +216,9 @@ export default function SuperAdminPage() {
         setFormData({
             name: club.name,
             description: club.description || "",
-            logo: club.logo || ""
+            logo: club.logo || "",
+            supremaId: club.supremaId || "",
+            whatsapp: club.whatsapp || ""
         })
         setEditClubOpen(true)
     }
@@ -271,6 +277,24 @@ export default function SuperAdminPage() {
                                     value={formData.description}
                                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                                     placeholder="Descrição do clube (opcional)"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="supremaId">Suprema ID</Label>
+                                <Input
+                                    id="supremaId"
+                                    value={formData.supremaId}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, supremaId: e.target.value }))}
+                                    placeholder="ID do clube na Suprema (opcional)"
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="whatsapp">WhatsApp</Label>
+                                <Input
+                                    id="whatsapp"
+                                    value={formData.whatsapp}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                                    placeholder="Número do WhatsApp (opcional)"
                                 />
                             </div>
                             <div>
@@ -475,6 +499,24 @@ export default function SuperAdminPage() {
                             />
                         </div>
                         <div>
+                            <Label htmlFor="edit-supremaId">Suprema ID</Label>
+                            <Input
+                                id="edit-supremaId"
+                                value={formData.supremaId}
+                                onChange={(e) => setFormData(prev => ({ ...prev, supremaId: e.target.value }))}
+                                placeholder="ID do clube na Suprema (opcional)"
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="edit-whatsapp">WhatsApp</Label>
+                            <Input
+                                id="edit-whatsapp"
+                                value={formData.whatsapp}
+                                onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
+                                placeholder="Número do WhatsApp (opcional)"
+                            />
+                        </div>
+                        <div>
                             <ImageUpload
                                 label="Logo do Clube"
                                 value={formData.logo}
@@ -486,7 +528,7 @@ export default function SuperAdminPage() {
                             <Button type="button" variant="outline" onClick={() => {
                                 setEditClubOpen(false)
                                 setSelectedClub(null)
-                                setFormData({ name: "", description: "", logo: "" })
+                                setFormData({ name: "", description: "", logo: "", supremaId: "", whatsapp: "" })
                             }}>
                                 Cancelar
                             </Button>
