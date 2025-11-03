@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Trophy, Medal, Award, Users, Calendar } from "lucide-react"
 import { formatDateToBR } from "@/lib/date-utils"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 
 interface RankingPlayer {
   position: number
@@ -29,6 +29,8 @@ function HomePageContent() {
   const [fromDate, setFromDate] = useState<string>("")
   const [toDate, setToDate] = useState<string>("")
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const initializedRef = useRef(false)
   
   // Converter para formato YYYY-MM-DD no timezone local
@@ -39,15 +41,33 @@ function HomePageContent() {
     return `${year}-${month}-${day}`
   }
 
-  const fetchRanking = useCallback(async () => {
+  // Função para atualizar query parameters na URL
+  const updateQueryParams = useCallback((newFromDate: string, newToDate: string) => {
+    const params = new URLSearchParams()
+    if (newFromDate) {
+      params.set('from-date', newFromDate)
+    }
+    if (newToDate) {
+      params.set('to-date', newToDate)
+    }
+    
+    const queryString = params.toString()
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+    router.push(newUrl, { scroll: false })
+  }, [pathname, router])
+
+  const fetchRanking = useCallback(async (fetchFromDate?: string, fetchToDate?: string) => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      if (fromDate) {
-        params.append('from-date', fromDate)
+      const dateFrom = fetchFromDate || fromDate
+      const dateTo = fetchToDate || toDate
+      
+      if (dateFrom) {
+        params.append('from-date', dateFrom)
       }
-      if (toDate) {
-        params.append('to-date', toDate)
+      if (dateTo) {
+        params.append('to-date', dateTo)
       }
 
       const queryString = params.toString()
@@ -56,7 +76,6 @@ function HomePageContent() {
       if (response.ok) {
         const data = await response.json()
         setRanking(data)
-        // Mover trackRankingView para fora do useCallback
       }
     } catch (error) {
       console.error('Erro ao buscar ranking:', error)
@@ -81,6 +100,21 @@ function HomePageContent() {
     setToDate(toParam ?? formatDateToLocal(monthEnd))
     initializedRef.current = true
   }, [searchParams])
+
+  // Função para lidar com mudanças nos filtros
+  const handleFilterChange = useCallback((newFromDate: string, newToDate: string) => {
+    setFromDate(newFromDate)
+    setToDate(newToDate)
+    updateQueryParams(newFromDate, newToDate)
+  }, [updateQueryParams])
+
+  // Função para o botão Atualizar
+  const handleUpdateClick = useCallback(() => {
+    if (fromDate && toDate) {
+      updateQueryParams(fromDate, toDate)
+      fetchRanking()
+    }
+  }, [fromDate, toDate, updateQueryParams, fetchRanking])
 
   useEffect(() => {
     if (fromDate && toDate) {
@@ -127,7 +161,14 @@ function HomePageContent() {
                 id="from-date"
                 type="date"
                 value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
+                onChange={(e) => {
+                  const newFromDate = e.target.value
+                  setFromDate(newFromDate)
+                  // Atualiza query params automaticamente quando o campo muda
+                  if (newFromDate && toDate) {
+                    updateQueryParams(newFromDate, toDate)
+                  }
+                }}
                 className="w-full sm:w-40"
               />
             </div>
@@ -138,13 +179,20 @@ function HomePageContent() {
                 id="to-date"
                 type="date"
                 value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
+                onChange={(e) => {
+                  const newToDate = e.target.value
+                  setToDate(newToDate)
+                  // Atualiza query params automaticamente quando o campo muda
+                  if (fromDate && newToDate) {
+                    updateQueryParams(fromDate, newToDate)
+                  }
+                }}
                 className="w-full sm:w-40"
               />
             </div>
 
             <div className="flex items-end">
-              <Button onClick={fetchRanking} disabled={loading} className="w-full sm:w-auto">
+              <Button onClick={handleUpdateClick} disabled={loading} className="w-full sm:w-auto">
                 Atualizar
               </Button>
             </div>
