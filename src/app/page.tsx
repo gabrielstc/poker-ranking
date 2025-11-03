@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, Suspense } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +23,7 @@ interface RankingPlayer {
   averagePosition: number | null
 }
 
-export default function HomePage() {
+function HomePageContent() {
   const [ranking, setRanking] = useState<RankingPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [fromDate, setFromDate] = useState<string>("")
@@ -217,5 +217,18 @@ export default function HomePage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-2 text-muted-foreground">Carregando...</p>
+      </div>
+    }>
+      <HomePageContent />
+    </Suspense>
   )
 }
